@@ -42,6 +42,18 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // Guard untuk petugas (staf dan admin) — berbasis sesi
+        'petugas' => [
+            'driver' => 'session',
+            'provider' => 'petugas',
+        ],
+
+        // Guard untuk masyarakat — berbasis sesi (web) dan token (API via Sanctum)
+        'masyarakat' => [
+            'driver' => 'session',
+            'provider' => 'masyarakat',
+        ],
     ],
 
     /*
@@ -65,6 +77,16 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        'petugas' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Petugas::class,
+        ],
+
+        'masyarakat' => [
+            'driver' => 'eloquent',
+            'model' => \App\Models\Masyarakat::class,
         ],
 
         // 'users' => [
