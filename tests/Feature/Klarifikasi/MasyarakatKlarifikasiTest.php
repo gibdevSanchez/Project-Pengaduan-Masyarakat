@@ -35,8 +35,7 @@ class MasyarakatKlarifikasiTest extends TestCase
             'level'        => 'petugas',
         ]);
         $this->pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $this->masyarakat->nik,
+            'masyarakat_id' => $this->masyarakat->id,
             'isi_laporan'   => 'Jalan berlubang besar di depan rumah saya',
             'status'        => 'proses',
             'kategori'      => 'infrastruktur',
@@ -46,7 +45,7 @@ class MasyarakatKlarifikasiTest extends TestCase
             'id_pengaduan' => $this->pengaduan->id_pengaduan,
             'pesan'        => 'Di jalan mana tepatnya lubang tersebut?',
             'dari'         => 'petugas',
-            'id_pengirim'  => $this->petugas->id_petugas,
+            'petugas_id'   => $this->petugas->id_petugas,
         ]);
     }
 
@@ -68,10 +67,10 @@ class MasyarakatKlarifikasiTest extends TestCase
     public function test_masyarakat_cannot_reply_when_last_message_is_their_own(): void
     {
         Klarifikasi::create([
-            'id_pengaduan' => $this->pengaduan->id_pengaduan,
-            'pesan'        => 'Jawaban saya sebelumnya',
-            'dari'         => 'masyarakat',
-            'id_pengirim'  => $this->masyarakat->id,
+            'id_pengaduan'  => $this->pengaduan->id_pengaduan,
+            'pesan'         => 'Jawaban saya sebelumnya',
+            'dari'          => 'masyarakat',
+            'masyarakat_id' => $this->masyarakat->id,
         ]);
 
         $this->actingAs($this->masyarakat, 'masyarakat')

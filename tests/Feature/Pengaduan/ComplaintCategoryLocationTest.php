@@ -34,10 +34,10 @@ class ComplaintCategoryLocationTest extends TestCase
 
         $response->assertRedirect(route('masyarakat.dashboard'));
         $this->assertDatabaseHas('pengaduan', [
-            'isi_laporan' => 'Ada jalan berlubang di depan pasar',
-            'kategori'    => 'infrastruktur',
-            'lokasi'      => 'Jl. Merdeka No. 10',
-            'nik'         => '1234567890123456',
+            'isi_laporan'   => 'Ada jalan berlubang di depan pasar',
+            'kategori'      => 'infrastruktur',
+            'lokasi'        => 'Jl. Merdeka No. 10',
+            'masyarakat_id' => $user->id,
         ]);
     }
 
@@ -75,8 +75,8 @@ class ComplaintCategoryLocationTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('pengaduan', [
-            'isi_laporan' => 'Pengaduan anonim tentang sampah',
-            'nik'         => null,
+            'isi_laporan'   => 'Pengaduan anonim tentang sampah',
+            'masyarakat_id' => null,
         ]);
     }
 }

@@ -34,8 +34,7 @@ class PetugasKlarifikasiTest extends TestCase
             'telp'     => '089876543210',
         ]);
         $this->pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $masyarakat->nik,
+            'masyarakat_id' => $masyarakat->id,
             'isi_laporan'   => 'Jalan berlubang sangat dalam di depan SD',
             'status'        => 'proses',
             'kategori'      => 'infrastruktur',
@@ -65,7 +64,7 @@ class PetugasKlarifikasiTest extends TestCase
             'id_pengaduan' => $this->pengaduan->id_pengaduan,
             'pesan'        => 'Pertanyaan pertama dari petugas',
             'dari'         => 'petugas',
-            'id_pengirim'  => $this->petugas->id_petugas,
+            'petugas_id'   => $this->petugas->id_petugas,
         ]);
 
         $this->actingAs($this->petugas, 'petugas')
@@ -78,8 +77,7 @@ class PetugasKlarifikasiTest extends TestCase
     public function test_petugas_cannot_send_klarifikasi_to_anonymous_complaint(): void
     {
         $anon = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => null,
+            'masyarakat_id' => null,
             'isi_laporan'   => 'Laporan dari anonim tidak boleh klarifikasi',
             'status'        => 'menunggu',
             'kategori'      => 'lainnya',
@@ -106,11 +104,8 @@ class PetugasKlarifikasiTest extends TestCase
 
     public function test_petugas_tidak_bisa_klarifikasi_laporan_yang_belum_diambil(): void
     {
-        $masyarakat = Masyarakat::where('nik', $this->pengaduan->nik)->first();
-
         $belumDiambil = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $masyarakat->nik,
+            'masyarakat_id' => $this->pengaduan->masyarakat_id,
             'isi_laporan'   => 'Laporan yang belum ada petugasnya',
             'status'        => 'menunggu',
             'kategori'      => 'lainnya',
@@ -134,11 +129,8 @@ class PetugasKlarifikasiTest extends TestCase
             'level'        => 'petugas',
         ]);
 
-        $masyarakat = Masyarakat::where('nik', $this->pengaduan->nik)->first();
-
         $milikPetugasLain = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $masyarakat->nik,
+            'masyarakat_id' => $this->pengaduan->masyarakat_id,
             'isi_laporan'   => 'Laporan yang sudah diambil petugas lain',
             'status'        => 'proses',
             'kategori'      => 'lainnya',

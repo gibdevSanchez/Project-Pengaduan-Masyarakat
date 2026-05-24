@@ -13,13 +13,13 @@ class Pengaduan extends Model
     protected $primaryKey = 'id_pengaduan';
 
     protected $fillable = [
-        'tgl_pengaduan', 'nik', 'isi_laporan', 'foto', 'status',
+        'masyarakat_id', 'isi_laporan', 'status',
         'kategori', 'lokasi', 'id_petugas', 'selesai_at', 'takedown_reason',
     ];
 
     public function masyarakat()
     {
-        return $this->belongsTo(Masyarakat::class, 'nik', 'nik');
+        return $this->belongsTo(Masyarakat::class, 'masyarakat_id', 'id');
     }
 
     public function tanggapan()
@@ -36,5 +36,10 @@ class Pengaduan extends Model
     {
         return $this->hasMany(Klarifikasi::class, 'id_pengaduan', 'id_pengaduan')
                     ->orderBy('created_at');
+    }
+
+    public function fotos()
+    {
+        return $this->hasMany(PengaduanFoto::class, 'id_pengaduan', 'id_pengaduan');
     }
 }

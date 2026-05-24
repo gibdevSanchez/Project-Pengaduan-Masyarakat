@@ -25,10 +25,9 @@ class TanggapanController extends Controller
         );
 
         Tanggapan::create([
-            'id_pengaduan'  => $pengaduan->id_pengaduan,
-            'tgl_tanggapan' => now()->toDateString(),
-            'tanggapan'     => $request->tanggapan,
-            'id_petugas'    => auth('petugas')->id(),
+            'id_pengaduan' => $pengaduan->id_pengaduan,
+            'tanggapan'    => $request->tanggapan,
+            'id_petugas'   => auth('petugas')->id(),
         ]);
 
         $pengaduan->update([

@@ -18,7 +18,7 @@ class DashboardController extends Controller
     {
         $petugas = auth('petugas')->user();
 
-        $result = Pengaduan::with(['masyarakat', 'petugasAssigned'])
+        $result = Pengaduan::with(['masyarakat', 'petugasAssigned', 'fotos'])
             ->when(
                 $request->boolean('mine'),
                 fn($q) => $q->where('id_petugas', $petugas->id_petugas),
@@ -34,15 +34,15 @@ class DashboardController extends Controller
         $result->getCollection()->transform(function ($p) {
             return [
                 'id'         => $p->id_pengaduan,
-                'tgl'        => $p->tgl_pengaduan,
+                'tgl'        => $p->created_at->toDateString(),
                 'nama'       => $p->masyarakat?->nama ?? 'Anonim',
-                'isAnonim'   => is_null($p->nik),
-                'nikMasked'  => $p->nik ? '****' . substr($p->nik, -4) : null,
+                'isAnonim'   => is_null($p->masyarakat_id),
+                'nikMasked'  => $p->masyarakat?->nik ? '****' . substr($p->masyarakat->nik, -4) : null,
                 'telp'       => $p->masyarakat?->telp,
                 'initials'   => strtoupper(substr($p->masyarakat?->nama ?? 'A', 0, 1)),
                 'snippet'    => \Illuminate\Support\Str::limit($p->isi_laporan, 75),
                 'isiLaporan' => $p->isi_laporan,
-                'foto'       => $p->foto ? \Illuminate\Support\Facades\Storage::url($p->foto) : null,
+                'fotos'      => $p->fotos->map(fn($f) => \Illuminate\Support\Facades\Storage::url($f->foto))->toArray(),
                 'status'     => $p->status,
                 'kategori'   => $p->kategori,
                 'lokasi'     => $p->lokasi,

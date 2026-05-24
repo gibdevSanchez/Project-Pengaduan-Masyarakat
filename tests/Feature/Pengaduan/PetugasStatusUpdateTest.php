@@ -33,8 +33,7 @@ class PetugasStatusUpdateTest extends TestCase
             'telp'     => '089876543210',
         ]);
         $this->pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $masyarakat->nik,
+            'masyarakat_id' => $masyarakat->id,
             'isi_laporan'   => 'Jalan rusak parah sekali di depan rumah',
             'status'        => 'menunggu',
             'kategori'      => 'infrastruktur',
@@ -70,8 +69,7 @@ class PetugasStatusUpdateTest extends TestCase
     public function test_petugas_cannot_update_unassigned_complaint(): void
     {
         $other = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $this->pengaduan->nik,
+            'masyarakat_id' => $this->pengaduan->masyarakat_id,
             'isi_laporan'   => 'Laporan milik orang lain',
             'status'        => 'menunggu',
             'kategori'      => 'lingkungan',

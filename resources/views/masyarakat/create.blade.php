@@ -22,14 +22,17 @@
      x-data="{
          charCount: 0,
          anonim: false,
-         photoPreview: null,
-         removePhoto() { this.photoPreview = null; document.getElementById('foto-input').value = ''; },
-         handleFile(e) {
-             const file = e.target.files[0];
-             if (!file) return;
-             const reader = new FileReader();
-             reader.onload = ev => this.photoPreview = ev.target.result;
-             reader.readAsDataURL(file);
+         photoPreviews: [],
+         removePhoto(idx) {
+             this.photoPreviews.splice(idx, 1);
+             if (this.photoPreviews.length === 0) document.getElementById('foto-input').value = '';
+         },
+         handleFiles(e) {
+             Array.from(e.target.files).forEach(file => {
+                 const reader = new FileReader();
+                 reader.onload = ev => this.photoPreviews.push(ev.target.result);
+                 reader.readAsDataURL(file);
+             });
          }
      }">
 
@@ -119,7 +122,7 @@
                 Foto Bukti <span class="text-xs font-normal text-stone-400">(opsional)</span>
             </label>
 
-            <div x-show="!photoPreview"
+            <div x-show="photoPreviews.length === 0"
                  @click="document.getElementById('foto-input').click()"
                  class="group border-2 border-dashed border-stone-200 rounded-xl p-6 text-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/50 transition-all">
                 <div class="w-12 h-12 rounded-2xl bg-stone-100 group-hover:bg-orange-100 flex items-center justify-center mx-auto mb-3 transition-colors">
@@ -128,21 +131,31 @@
                     </svg>
                 </div>
                 <p class="text-sm font-semibold text-stone-700 group-hover:text-stone-900 transition-colors">Ketuk untuk pilih foto</p>
-                <p class="text-xs font-light text-stone-400 mt-0.5">PNG, JPG hingga 2 MB</p>
+                <p class="text-xs font-light text-stone-400 mt-0.5">PNG, JPG hingga 2 MB · Maks. 5 foto</p>
             </div>
 
-            <div x-show="photoPreview" x-cloak class="relative">
-                <img :src="photoPreview" class="w-full max-h-48 object-cover rounded-xl border border-stone-100">
-                <button type="button" @click="removePhoto()"
-                        class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white border-0 cursor-pointer flex items-center justify-center transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
+            <div x-show="photoPreviews.length > 0" x-cloak class="flex flex-col gap-2">
+                <template x-for="(src, idx) in photoPreviews" :key="idx">
+                    <div class="relative">
+                        <img :src="src" class="w-full max-h-48 object-cover rounded-xl border border-stone-100">
+                        <button type="button" @click="removePhoto(idx)"
+                                class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white border-0 cursor-pointer flex items-center justify-center transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                </template>
+                <button type="button" @click="document.getElementById('foto-input').click()"
+                        x-show="photoPreviews.length < 5"
+                        class="w-full py-2.5 rounded-xl border border-dashed border-stone-200 text-sm text-stone-500 hover:border-orange-400 hover:text-orange-500 cursor-pointer font-sans transition-colors">
+                    + Tambah foto lagi
                 </button>
             </div>
 
-            <input type="file" id="foto-input" name="foto" accept="image/*" class="hidden" @change="handleFile($event)">
+            <input type="file" id="foto-input" name="foto[]" accept="image/*" multiple class="hidden" @change="handleFiles($event)">
             @error('foto')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+            @error('foto.*')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         </div>
 
         {{-- Anonim toggle --}}

@@ -73,7 +73,7 @@
             </div>
 
             <div class="flex items-center justify-between">
-                <span class="text-xs text-stone-400 font-light">{{ $p->tgl_pengaduan }}</span>
+                <span class="text-xs text-stone-400 font-light">{{ $p->created_at->format('d M Y') }}</span>
                 @if($p->tanggapan->count() > 0)
                 <span class="text-xs text-orange-500 font-medium">{{ $p->tanggapan->count() }} tanggapan</span>
                 @else

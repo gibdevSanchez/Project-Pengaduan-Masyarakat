@@ -33,8 +33,7 @@ class TakedownTest extends TestCase
             'telp'     => '089876543210',
         ]);
         $this->pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $masyarakat->nik,
+            'masyarakat_id' => $masyarakat->id,
             'isi_laporan'   => 'Laporan yang ternyata tidak valid',
             'status'        => 'menunggu',
             'kategori'      => 'lainnya',
@@ -72,8 +71,7 @@ class TakedownTest extends TestCase
     public function test_petugas_cannot_takedown_unassigned_complaint(): void
     {
         $other = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $this->pengaduan->nik,
+            'masyarakat_id' => $this->pengaduan->masyarakat_id,
             'isi_laporan'   => 'Laporan yang belum diambil siapapun',
             'status'        => 'menunggu',
             'kategori'      => 'lainnya',
@@ -98,8 +96,7 @@ class TakedownTest extends TestCase
         ]);
 
         $milikPetugasLain = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $this->pengaduan->nik,
+            'masyarakat_id' => $this->pengaduan->masyarakat_id,
             'isi_laporan'   => 'Laporan yang sudah diambil petugas lain',
             'status'        => 'proses',
             'kategori'      => 'lainnya',

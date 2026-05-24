@@ -106,7 +106,7 @@
                                 <span class="w-1.5 h-1.5 rounded-full {{ $statusCfg['dot'] }}"></span>
                                 {{ ucfirst($p->status === 'tidak_valid' ? 'Tidak Valid' : $p->status) }}
                             </span>
-                            <p class="text-[0.6875rem] font-light text-stone-400 mt-1">{{ $p->tgl_pengaduan }}</p>
+                            <p class="text-[0.6875rem] font-light text-stone-400 mt-1">{{ $p->created_at->format('d M Y') }}</p>
                         </div>
                     </div>
                     @endforeach

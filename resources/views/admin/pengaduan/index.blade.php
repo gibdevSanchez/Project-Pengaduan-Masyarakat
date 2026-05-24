@@ -70,7 +70,7 @@
                 @endphp
                 <tr class="{{ $p->trashed() ? 'opacity-60 bg-stone-50/60' : 'hover:bg-orange-50/40' }} transition-colors">
                     <td class="px-4 py-3 text-xs text-stone-400 font-mono">#{{ $p->id_pengaduan }}</td>
-                    <td class="px-4 py-3 text-xs text-stone-500 whitespace-nowrap">{{ $p->tgl_pengaduan }}</td>
+                    <td class="px-4 py-3 text-xs text-stone-500 whitespace-nowrap">{{ $p->created_at->format('d M Y') }}</td>
                     <td class="px-4 py-3">
                         <span class="{{ $p->trashed() ? 'line-through text-stone-400' : 'text-stone-800 font-medium' }} text-sm">
                             {{ $p->masyarakat?->nama ?? 'Anonim' }}

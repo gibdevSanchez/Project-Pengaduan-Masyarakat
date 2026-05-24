@@ -45,8 +45,8 @@ class PengaduanApiTest extends TestCase
         ])->assertStatus(201);
 
         $this->assertDatabaseHas('pengaduan', [
-            'isi_laporan' => 'Jalan di RT 05 rusak parah.',
-            'nik' => null,
+            'isi_laporan'   => 'Jalan di RT 05 rusak parah.',
+            'masyarakat_id' => null,
         ]);
     }
 
@@ -54,7 +54,7 @@ class PengaduanApiTest extends TestCase
     {
         $pengaduan = Pengaduan::create([
             'tgl_pengaduan' => now()->toDateString(),
-            'nik' => $this->masyarakat->nik,
+            'masyarakat_id' => $this->masyarakat->id,
             'isi_laporan' => 'Laporan detail test.',
             'status' => 'menunggu',
         ]);
@@ -68,7 +68,7 @@ class PengaduanApiTest extends TestCase
     {
         $pengaduan = Pengaduan::create([
             'tgl_pengaduan' => now()->toDateString(),
-            'nik' => $this->masyarakat->nik,
+            'masyarakat_id' => $this->masyarakat->id,
             'isi_laporan' => 'Laporan test.',
             'status' => 'menunggu',
         ]);

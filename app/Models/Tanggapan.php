@@ -9,7 +9,7 @@ class Tanggapan extends Model
     protected $table = 'tanggapan';
     protected $primaryKey = 'id_tanggapan';
 
-    protected $fillable = ['id_pengaduan', 'tgl_tanggapan', 'tanggapan', 'id_petugas'];
+    protected $fillable = ['id_pengaduan', 'tanggapan', 'id_petugas'];
 
     public function pengaduan()
     {

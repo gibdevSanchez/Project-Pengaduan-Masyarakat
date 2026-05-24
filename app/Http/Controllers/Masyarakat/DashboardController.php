@@ -11,7 +11,7 @@ class DashboardController extends Controller
     {
         $user      = auth('masyarakat')->user();
         $pengaduan = Pengaduan::with('tanggapan.petugas')
-            ->where('nik', auth('masyarakat')->user()->nik)
+            ->where('masyarakat_id', auth('masyarakat')->user()->id)
             ->latest()
             ->get();
 
@@ -21,7 +21,7 @@ class DashboardController extends Controller
     public function riwayat()
     {
         $pengaduan = Pengaduan::with('tanggapan.petugas')
-            ->where('nik', auth('masyarakat')->user()->nik)
+            ->where('masyarakat_id', auth('masyarakat')->user()->id)
             ->latest()
             ->get();
 

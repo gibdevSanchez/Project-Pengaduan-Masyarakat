@@ -12,7 +12,7 @@
     </a>
     <div>
         <p class="font-bold text-[1.0625rem] text-stone-900 tracking-tight">Detail Pengaduan</p>
-        <p class="text-[0.6875rem] font-light text-stone-500">{{ $pengaduan->tgl_pengaduan }}</p>
+        <p class="text-[0.6875rem] font-light text-stone-500">{{ $pengaduan->created_at->format('d M Y') }}</p>
     </div>
 </div>
 @endsection
@@ -62,9 +62,13 @@ $kategoriCfg = [
         <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">Laporan</p>
         <div class="bg-white rounded-xl p-4 shadow-sm border border-stone-100">
             <p class="text-sm text-stone-800 leading-relaxed">{{ $pengaduan->isi_laporan }}</p>
-            @if($pengaduan->foto)
-            <img src="{{ Storage::url($pengaduan->foto) }}"
-                 class="mt-3 w-full rounded-xl object-cover max-h-52 border border-stone-100" alt="Foto bukti">
+            @if($pengaduan->fotos->isNotEmpty())
+            <div class="mt-3 flex flex-col gap-2">
+                @foreach($pengaduan->fotos as $foto)
+                <img src="{{ Storage::url($foto->foto) }}"
+                     class="w-full rounded-xl object-cover max-h-52 border border-stone-100" alt="Foto bukti">
+                @endforeach
+            </div>
             @endif
         </div>
     </div>
@@ -92,7 +96,7 @@ $kategoriCfg = [
                     </div>
                     <div>
                         <p class="text-xs font-semibold text-stone-800">{{ $t->petugas?->nama_petugas ?? 'Petugas' }}</p>
-                        <p class="text-[0.6875rem] text-stone-400 font-light">{{ $t->tgl_tanggapan }}</p>
+                        <p class="text-[0.6875rem] text-stone-400 font-light">{{ $t->created_at->format('d M Y') }}</p>
                     </div>
                 </div>
                 <p class="text-sm text-stone-700 leading-relaxed">{{ $t->tanggapan }}</p>

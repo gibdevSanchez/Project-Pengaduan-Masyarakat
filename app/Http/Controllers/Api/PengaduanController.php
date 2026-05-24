@@ -17,19 +17,16 @@ class PengaduanController extends Controller
     {
         $request->validate([
             'isi_laporan' => 'required|string',
-            'foto'        => 'nullable|string',
             'kategori'    => 'nullable|in:infrastruktur,lingkungan,keamanan,sosial,lainnya',
             'lokasi'      => 'nullable|string|max:255',
         ]);
 
         $pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => auth('sanctum')->user()?->nik,
-            'isi_laporan'   => $request->isi_laporan,
-            'foto'          => $request->foto,
-            'status'        => 'menunggu',
-            'kategori'      => $request->kategori ?? 'lainnya',
-            'lokasi'        => $request->lokasi,
+            'masyarakat_id' => auth('sanctum')->user()?->id,
+            'isi_laporan'=> $request->isi_laporan,
+            'status'     => 'menunggu',
+            'kategori'   => $request->kategori ?? 'lainnya',
+            'lokasi'     => $request->lokasi,
         ]);
 
         return response()->json($pengaduan, 201);

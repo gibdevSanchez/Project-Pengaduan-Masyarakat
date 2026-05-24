@@ -43,10 +43,9 @@ class ModelRelationTest extends TestCase
         ]);
 
         Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik' => $masyarakat->nik,
-            'isi_laporan' => 'Jalan rusak di RT 03.',
-            'status' => 'menunggu',
+            'masyarakat_id' => $masyarakat->id,
+            'isi_laporan'   => 'Jalan rusak di RT 03.',
+            'status'        => 'menunggu',
         ]);
 
         $this->assertCount(1, $masyarakat->pengaduan);
@@ -56,13 +55,12 @@ class ModelRelationTest extends TestCase
     public function test_pengaduan_anonim_boleh_tanpa_nik(): void
     {
         $pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik' => null,
-            'isi_laporan' => 'Laporan anonim.',
-            'status' => 'menunggu',
+            'masyarakat_id' => null,
+            'isi_laporan'   => 'Laporan anonim.',
+            'status'        => 'menunggu',
         ]);
 
-        $this->assertNull($pengaduan->nik);
+        $this->assertNull($pengaduan->masyarakat_id);
         $this->assertNull($pengaduan->masyarakat);
     }
 
@@ -77,10 +75,9 @@ class ModelRelationTest extends TestCase
         ]);
 
         $pengaduan = Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik' => null,
-            'isi_laporan' => 'Laporan test.',
-            'status' => 'menunggu',
+            'masyarakat_id' => null,
+            'isi_laporan'   => 'Laporan test.',
+            'status'        => 'menunggu',
         ]);
 
         Tanggapan::create([

@@ -25,8 +25,7 @@ class PetugasAssignTest extends TestCase
     private function makePengaduan(array $attrs = []): Pengaduan
     {
         return Pengaduan::create(array_merge([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => null,
+            'masyarakat_id' => null,
             'isi_laporan'   => 'Laporan test',
             'status'        => 'menunggu',
             'kategori'      => 'lainnya',

@@ -15,7 +15,7 @@ class KlarifikasiController extends Controller
 
         $masyarakat = auth('masyarakat')->user();
         $pengaduan  = Pengaduan::where('id_pengaduan', $id)
-            ->where('nik', $masyarakat->nik)
+            ->where('masyarakat_id', $masyarakat->id)
             ->firstOrFail();
 
         abort_if(in_array($pengaduan->status, ['selesai', 'tidak_valid']), 403, 'Thread klarifikasi sudah ditutup.');
@@ -27,7 +27,7 @@ class KlarifikasiController extends Controller
             'id_pengaduan' => $id,
             'pesan'        => $request->pesan,
             'dari'         => 'masyarakat',
-            'id_pengirim'  => $masyarakat->id,
+            'masyarakat_id'=> $masyarakat->id,
         ]);
 
         return redirect()->back()->with('success', 'Jawaban berhasil dikirim.');

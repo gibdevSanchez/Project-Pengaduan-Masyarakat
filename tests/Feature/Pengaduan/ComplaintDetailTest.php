@@ -19,11 +19,10 @@ class ComplaintDetailTest extends TestCase
         ]);
     }
 
-    private function makePengaduan(string $nik): Pengaduan
+    private function makePengaduan(Masyarakat $owner): Pengaduan
     {
         return Pengaduan::create([
-            'tgl_pengaduan' => now()->toDateString(),
-            'nik'           => $nik,
+            'masyarakat_id' => $owner->id,
             'isi_laporan'   => 'Jalan berlubang di perempatan',
             'status'        => 'menunggu',
             'kategori'      => 'infrastruktur',
@@ -33,7 +32,7 @@ class ComplaintDetailTest extends TestCase
     public function test_owner_can_view_detail(): void
     {
         $user = $this->makeMasyarakat();
-        $pengaduan = $this->makePengaduan($user->nik);
+        $pengaduan = $this->makePengaduan($user);
 
         $response = $this->actingAs($user, 'masyarakat')
             ->get(route('masyarakat.pengaduan.show', $pengaduan->id_pengaduan));
@@ -46,7 +45,7 @@ class ComplaintDetailTest extends TestCase
     {
         $owner  = $this->makeMasyarakat('1234567890123456');
         $other  = $this->makeMasyarakat('9876543210987654');
-        $pengaduan = $this->makePengaduan($owner->nik);
+        $pengaduan = $this->makePengaduan($owner);
 
         $response = $this->actingAs($other, 'masyarakat')
             ->get(route('masyarakat.pengaduan.show', $pengaduan->id_pengaduan));
@@ -57,7 +56,7 @@ class ComplaintDetailTest extends TestCase
     public function test_soft_deleted_complaint_returns_404(): void
     {
         $user = $this->makeMasyarakat();
-        $pengaduan = $this->makePengaduan($user->nik);
+        $pengaduan = $this->makePengaduan($user);
         $pengaduan->delete();
 
         $response = $this->actingAs($user, 'masyarakat')

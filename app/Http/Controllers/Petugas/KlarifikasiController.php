@@ -36,14 +36,14 @@ class KlarifikasiController extends Controller
         $pengaduan = Pengaduan::findOrFail($id);
 
         abort_if($pengaduan->id_petugas !== $petugas->id_petugas, 403);
-        abort_if(is_null($pengaduan->nik), 403, 'Pengaduan anonim tidak dapat dikomunikasikan.');
+        abort_if(is_null($pengaduan->masyarakat_id), 403, 'Pengaduan anonim tidak dapat dikomunikasikan.');
         abort_if(in_array($pengaduan->status, ['selesai', 'tidak_valid']), 409, 'Thread klarifikasi sudah ditutup.');
 
         $klarifikasi = Klarifikasi::create([
             'id_pengaduan' => $id,
             'pesan'        => $request->pesan,
             'dari'         => 'petugas',
-            'id_pengirim'  => $petugas->id_petugas,
+            'petugas_id'   => $petugas->id_petugas,
         ]);
 
         return response()->json([

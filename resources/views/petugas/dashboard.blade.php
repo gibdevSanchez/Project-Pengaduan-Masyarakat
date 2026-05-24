@@ -240,10 +240,14 @@
                     <div class="p-5 border-b border-stone-200">
                         <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">Laporan</p>
                         <p class="text-sm text-stone-900 leading-relaxed" x-text="selectedComplaint.isiLaporan"></p>
-                        <template x-if="selectedComplaint.foto">
-                            <a :href="selectedComplaint.foto" target="_blank" class="block mt-3">
-                                <img :src="selectedComplaint.foto" class="w-full max-h-48 object-cover rounded-xl cursor-pointer border border-stone-100">
-                            </a>
+                        <template x-if="selectedComplaint.fotos && selectedComplaint.fotos.length > 0">
+                            <div class="mt-3 flex flex-col gap-2">
+                                <template x-for="(src, idx) in selectedComplaint.fotos" :key="idx">
+                                    <a :href="src" target="_blank" class="block">
+                                        <img :src="src" class="w-full max-h-48 object-cover rounded-xl cursor-pointer border border-stone-100">
+                                    </a>
+                                </template>
+                            </div>
                         </template>
                     </div>
 
