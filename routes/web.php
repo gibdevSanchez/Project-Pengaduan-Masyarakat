@@ -11,6 +11,7 @@ use App\Http\Controllers\Masyarakat\ProfilController;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboard;
 use App\Http\Controllers\Petugas\KlarifikasiController as PetugasKlarifikasi;
 use App\Http\Controllers\Petugas\PengaduanController as PetugasPengaduan;
+use App\Http\Controllers\Petugas\ProfilController as PetugasProfil;
 use App\Http\Controllers\Petugas\TanggapanController;
 use App\Http\Controllers\Masyarakat\KlarifikasiController as MasyarakatKlarifikasi;
 use App\Http\Controllers\RegisterController;
@@ -44,6 +45,8 @@ Route::prefix('admin')->middleware(['is.admin'])->group(function () {
 
 Route::prefix('petugas')->middleware(['is.petugas'])->group(function () {
     Route::get('/dashboard', [PetugasDashboard::class, 'index'])->name('petugas.dashboard');
+    Route::get('/profil', [PetugasProfil::class, 'index'])->name('petugas.profil');
+    Route::put('/profil', [PetugasProfil::class, 'update'])->name('petugas.profil.update');
     Route::post('/pengaduan/{id}/tanggapan', [TanggapanController::class, 'store'])->name('petugas.tanggapan.store');
     Route::post('/pengaduan/{id}/assign', [TanggapanController::class, 'assign'])->name('petugas.pengaduan.assign');
     Route::get('/complaints', [PetugasDashboard::class, 'complaints'])->name('petugas.complaints.json');
@@ -58,6 +61,7 @@ Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
     Route::get('/berita', [BeritaController::class, 'index'])->name('masyarakat.berita');
     Route::get('/riwayat', [MasyarakatDashboard::class, 'riwayat'])->name('masyarakat.riwayat');
     Route::get('/profil', [ProfilController::class, 'index'])->name('masyarakat.profil');
+    Route::put('/profil', [ProfilController::class, 'update'])->name('masyarakat.profil.update');
     Route::get('/pengaduan/create', [MasyarakatPengaduan::class, 'create'])->name('masyarakat.pengaduan.create');
     Route::post('/pengaduan', [MasyarakatPengaduan::class, 'store'])->name('masyarakat.pengaduan.store');
     Route::get('/pengaduan/{id}', [MasyarakatPengaduan::class, 'show'])->name('masyarakat.pengaduan.show');

@@ -12,7 +12,7 @@ class Petugas extends Authenticatable
     protected $table = 'petugas';
     protected $primaryKey = 'id_petugas';
 
-    protected $fillable = ['nama_petugas', 'username', 'password', 'telp', 'level'];
+    protected $fillable = ['nama_petugas', 'username', 'password', 'telp', 'level', 'foto_profil'];
     protected $hidden = ['password'];
 
     public function tanggapan()

@@ -10,11 +10,17 @@
          x-cloak
          class="w-60 shrink-0 border-r border-stone-200 bg-white flex flex-col overflow-hidden">
 
-        <div class="p-4 border-b border-stone-200">
+        <div class="p-4 border-b border-stone-100">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-black text-sm shrink-0">
+                @if(auth('petugas')->user()->foto_profil)
+                <img src="{{ Storage::url(auth('petugas')->user()->foto_profil) }}"
+                     alt="{{ auth('petugas')->user()->nama_petugas }}"
+                     class="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-orange-200">
+                @else
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-sm shadow-orange-200">
                     {{ strtoupper(substr(auth('petugas')->user()->nama_petugas, 0, 1)) }}
                 </div>
+                @endif
                 <div class="min-w-0">
                     <p class="text-sm font-bold text-stone-900 truncate">{{ auth('petugas')->user()->nama_petugas }}</p>
                     <p class="text-xs font-light text-stone-500">Petugas</p>
@@ -25,9 +31,9 @@
         <nav class="flex-1 px-2 py-3 flex flex-col gap-0.5">
             <button type="button" @click="setMineFilter(false)"
                     :class="!mineOnly
-                        ? 'border-l-[3px] border-orange-500 bg-orange-50 text-orange-600 font-semibold'
-                        : 'border-l-[3px] border-transparent text-stone-500 hover:bg-orange-50 hover:text-stone-900'"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm cursor-pointer font-sans border-0 bg-transparent transition-all">
+                        ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-200'
+                        : 'bg-transparent text-stone-500 hover:bg-stone-100 hover:text-stone-800'"
+                    class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm cursor-pointer font-sans border-0 transition-all">
                 <svg class="w-[1.125rem] h-[1.125rem] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
                 </svg>
@@ -35,9 +41,9 @@
             </button>
             <button type="button" @click="setMineFilter(true)"
                     :class="mineOnly
-                        ? 'border-l-[3px] border-orange-500 bg-orange-50 text-orange-600 font-semibold'
-                        : 'border-l-[3px] border-transparent text-stone-500 hover:bg-orange-50 hover:text-stone-900'"
-                    class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm cursor-pointer font-sans border-0 bg-transparent transition-all">
+                        ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-200'
+                        : 'bg-transparent text-stone-500 hover:bg-stone-100 hover:text-stone-800'"
+                    class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm cursor-pointer font-sans border-0 transition-all">
                 <svg class="w-[1.125rem] h-[1.125rem] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
@@ -50,58 +56,73 @@
     <div class="w-[320px] shrink-0 border-r border-stone-200 bg-stone-50 flex flex-col overflow-hidden">
 
         {{-- Header: hamburger + search --}}
-        <div class="p-3 border-b border-stone-200 shrink-0">
+        <div class="p-3 border-b border-stone-200 bg-white shrink-0">
             <div class="flex items-center gap-2 mb-2.5">
                 <button type="button" @click="sidebarOpen = !sidebarOpen"
-                        class="flex items-center justify-center w-8 h-8 rounded-lg border border-stone-200 bg-white text-stone-500 hover:border-orange-400 hover:text-orange-500 transition-colors shrink-0 cursor-pointer font-sans">
+                        class="flex items-center justify-center w-8 h-8 rounded-xl border border-stone-200 bg-white text-stone-500 hover:border-orange-300 hover:text-orange-500 transition-colors shrink-0 cursor-pointer font-sans">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
                 <div class="relative flex-1">
-                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                     </svg>
                     <input type="text" x-model="search" @input="onSearchChange()" placeholder="Cari pengaduan..."
-                           class="w-full pl-9 pr-3 py-2 rounded-lg border border-stone-200 bg-white text-[0.8125rem] text-stone-900 font-sans outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20">
+                           class="w-full pl-9 pr-3 py-2 rounded-xl border border-stone-200 bg-stone-50 text-[0.8125rem] text-stone-900 font-sans outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 focus:bg-white transition-colors">
                 </div>
             </div>
         </div>
 
-        {{-- Single filter row: status chips + kategori dropdown --}}
-        <div class="flex items-center gap-1.5 px-3 py-2 border-b border-stone-200 shrink-0 overflow-x-auto">
+        {{-- Filter chips + kategori --}}
+        <div class="flex items-center gap-1.5 px-3 py-2 border-b border-stone-200 bg-white shrink-0 overflow-x-auto scrollbar-none">
             @foreach(['' => 'Semua', 'menunggu' => 'Menunggu', 'proses' => 'Proses', 'selesai' => 'Selesai', 'tidak_valid' => 'Tidak Valid'] as $val => $lbl)
             <button type="button"
                     @click="filterStatus = '{{ $val }}'; loadComplaints(true)"
                     :class="filterStatus === '{{ $val }}'
-                        ? 'bg-orange-500 text-white border-orange-500'
-                        : 'bg-white text-stone-500 border-stone-200'"
+                        ? 'bg-orange-500 text-white border-orange-500 shadow-sm'
+                        : 'bg-white text-stone-500 border-stone-200 hover:border-orange-300'"
                     class="px-2.5 py-1 rounded-full text-[0.6875rem] font-medium whitespace-nowrap cursor-pointer font-sans border transition-all shrink-0">
                 {{ $lbl }}
             </button>
             @endforeach
-            <select x-model="filterKategori" @change="loadComplaints(true)"
-                    class="ml-auto px-2 py-1 rounded-lg border border-stone-200 bg-white text-[0.6875rem] font-medium text-stone-600 outline-none cursor-pointer shrink-0">
-                <option value="">Kategori</option>
-                <option value="infrastruktur">Infrastruktur</option>
-                <option value="lingkungan">Lingkungan</option>
-                <option value="keamanan">Keamanan</option>
-                <option value="sosial">Sosial</option>
-                <option value="lainnya">Lainnya</option>
-            </select>
+            <div class="relative ml-auto shrink-0">
+                <select x-model="filterKategori" @change="loadComplaints(true)"
+                        class="appearance-none pl-2.5 pr-6 py-1 rounded-xl border border-stone-200 bg-white text-[0.6875rem] font-medium text-stone-600 outline-none cursor-pointer focus:border-orange-400">
+                    <option value="">Kategori</option>
+                    <option value="infrastruktur">Infrastruktur</option>
+                    <option value="lingkungan">Lingkungan</option>
+                    <option value="keamanan">Keamanan</option>
+                    <option value="sosial">Sosial</option>
+                    <option value="lainnya">Lainnya</option>
+                </select>
+                <div class="absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+            </div>
         </div>
 
         {{-- List --}}
         <div class="flex-1 overflow-y-auto">
             <template x-if="filteredComplaints.length === 0 && !loading">
-                <div class="p-12 text-center text-stone-400 text-sm font-light">Tidak ada pengaduan.</div>
+                <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center mb-3">
+                        <svg class="w-6 h-6 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
+                    </div>
+                    <p class="text-sm font-medium text-stone-500">Tidak ada pengaduan</p>
+                    <p class="text-xs font-light text-stone-400 mt-0.5">Coba ubah filter di atas</p>
+                </div>
             </template>
             <template x-for="c in filteredComplaints" :key="c.id">
                 <div @click="selectComplaint(c.id)"
                      :class="selectedId === c.id
-                         ? 'bg-white border-l-[3px] border-l-orange-500 shadow-[1px_0_8px_rgba(0,0,0,0.06)]'
-                         : 'border-l-[3px] border-l-transparent hover:bg-orange-50'"
-                     class="flex items-start gap-2.5 px-3 py-3.5 cursor-pointer transition-all border-b border-stone-200">
+                         ? 'bg-white border-l-[3px] border-l-orange-500 shadow-[2px_0_8px_rgba(0,0,0,0.06)]'
+                         : 'border-l-[3px] border-l-transparent hover:bg-white/70'"
+                     class="flex items-start gap-2.5 px-3 py-3.5 cursor-pointer transition-all border-b border-stone-100">
 
                     <div :style="`width:2.25rem;height:2.25rem;border-radius:9999px;background-color:${avatarColor(c.nama)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:0.8125rem;flex-shrink:0;`"
                          x-text="c.initials"></div>
@@ -111,8 +132,8 @@
                             <span class="text-sm font-semibold text-stone-900 truncate" x-text="c.nama"></span>
                             <span class="text-[0.6875rem] font-light text-stone-400 shrink-0 ml-2" x-text="c.tgl"></span>
                         </div>
-                        <p class="text-xs text-stone-500 truncate" x-text="c.snippet"></p>
-                        <div class="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                        <p class="text-xs text-stone-500 truncate mb-1.5" x-text="c.snippet"></p>
+                        <div class="flex items-center gap-1.5 flex-wrap">
                             <span class="text-[0.625rem] px-1.5 py-0.5 rounded-full font-medium"
                                   :class="{
                                     'bg-blue-100 text-blue-700': c.kategori === 'infrastruktur',
@@ -123,31 +144,44 @@
                                   }"
                                   x-text="c.kategori ? c.kategori.charAt(0).toUpperCase() + c.kategori.slice(1) : ''">
                             </span>
-                            <span x-show="c.lokasi" class="text-[0.625rem] text-stone-400 truncate" x-text="'📍 ' + c.lokasi"></span>
+                            <template x-if="c.lokasi">
+                                <span class="inline-flex items-center gap-0.5 text-[0.625rem] text-stone-400">
+                                    <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <span class="truncate max-w-[6rem]" x-text="c.lokasi"></span>
+                                </span>
+                            </template>
                         </div>
 
                         <template x-if="!c.id_petugas">
                             <form :action="'/petugas/pengaduan/' + c.id + '/assign'" method="POST" class="mt-2" @click.stop>
                                 @csrf
                                 <button type="submit"
-                                        class="w-full px-2 py-1 text-[0.6875rem] font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors border-0 cursor-pointer font-sans">
+                                        class="w-full px-2 py-1.5 text-[0.6875rem] font-semibold bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors border-0 cursor-pointer font-sans">
                                     Ambil Pengaduan
                                 </button>
                             </form>
                         </template>
                         <template x-if="c.id_petugas">
-                            <p class="text-[0.625rem] text-stone-400 mt-1.5 font-medium">👤 Pengaduan Saya</p>
+                            <p class="inline-flex items-center gap-1 text-[0.625rem] text-orange-500 font-medium mt-1.5">
+                                <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                Pengaduan Saya
+                            </p>
                         </template>
 
                         <div class="flex justify-end mt-1.5">
-                            <div :style="`width:0.5rem;height:0.5rem;border-radius:9999px;background-color:${statusColor(c.status)};`"></div>
+                            <div x-html="statusBadgeHtml(c.status)"></div>
                         </div>
                     </div>
                 </div>
             </template>
         </div>
 
-        <div class="p-3 border-t border-stone-200 shrink-0">
+        <div class="p-3 border-t border-stone-200 bg-white shrink-0">
             <button x-show="hasMore && !loading" @click="loadComplaints()"
                     class="w-full py-2 text-xs text-orange-500 font-medium hover:text-orange-600 bg-transparent border-0 cursor-pointer font-sans">
                 Muat lebih banyak...
@@ -160,12 +194,16 @@
     <div class="flex-1 flex flex-col overflow-hidden bg-white">
 
         {{-- Empty state --}}
-        <div x-show="!selectedId" class="flex-1 flex flex-col items-center justify-center gap-3">
-            <svg class="w-12 h-12 text-stone-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-            </svg>
-            <p class="font-medium text-[0.9375rem] text-stone-900">Pilih pengaduan</p>
-            <p class="font-light text-sm text-stone-500">untuk melihat detail dan memberi tanggapan</p>
+        <div x-show="!selectedId" class="flex-1 flex flex-col items-center justify-center gap-3 text-center px-8">
+            <div class="w-20 h-20 rounded-3xl bg-stone-100 flex items-center justify-center mb-1">
+                <svg class="w-9 h-9 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+            </div>
+            <div>
+                <p class="font-semibold text-[0.9375rem] text-stone-800">Pilih pengaduan</p>
+                <p class="font-light text-sm text-stone-400 mt-1">Klik salah satu pengaduan di sebelah kiri untuk melihat detail dan memberi tanggapan</p>
+            </div>
         </div>
 
         {{-- Selected complaint detail --}}
@@ -174,14 +212,14 @@
 
                 {{-- Zone 1: Sticky header --}}
                 <div class="flex items-center gap-3 px-5 py-4 border-b border-stone-200 bg-white shrink-0">
-                    <div :style="`width:2.5rem;height:2.5rem;border-radius:9999px;background-color:${avatarColor(selectedComplaint.nama)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;`"
+                    <div :style="`width:2.5rem;height:2.5rem;border-radius:9999px;background-color:${avatarColor(selectedComplaint.nama)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;flex-shrink:0;`"
                          x-text="selectedComplaint.initials"></div>
                     <div class="flex-1 min-w-0">
                         <p class="font-bold text-[0.9375rem] text-stone-900 truncate" x-text="selectedComplaint.nama"></p>
                         <p class="font-light text-xs text-stone-500" x-text="selectedComplaint.tgl"></p>
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
-                        <span class="text-[0.625rem] px-1.5 py-0.5 rounded-full font-medium"
+                        <span class="text-[0.625rem] px-2 py-0.5 rounded-full font-medium"
                               :class="{
                                 'bg-blue-100 text-blue-700': selectedComplaint.kategori === 'infrastruktur',
                                 'bg-emerald-100 text-emerald-700': selectedComplaint.kategori === 'lingkungan',
@@ -200,11 +238,11 @@
 
                     {{-- Block A: Isi Laporan + Foto --}}
                     <div class="p-5 border-b border-stone-200">
-                        <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wide mb-2">Laporan</p>
+                        <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">Laporan</p>
                         <p class="text-sm text-stone-900 leading-relaxed" x-text="selectedComplaint.isiLaporan"></p>
                         <template x-if="selectedComplaint.foto">
                             <a :href="selectedComplaint.foto" target="_blank" class="block mt-3">
-                                <img :src="selectedComplaint.foto" class="w-full max-h-48 object-cover rounded-xl cursor-pointer">
+                                <img :src="selectedComplaint.foto" class="w-full max-h-48 object-cover rounded-xl cursor-pointer border border-stone-100">
                             </a>
                         </template>
                     </div>
@@ -212,20 +250,30 @@
                     {{-- Block B: Lokasi --}}
                     <template x-if="selectedComplaint.lokasi">
                         <div class="px-5 py-4 border-b border-stone-200">
-                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wide mb-1">Lokasi</p>
-                            <p class="text-sm text-stone-900 mb-1.5" x-text="selectedComplaint.lokasi"></p>
-                            <a :href="'https://maps.google.com/?q=' + encodeURIComponent(selectedComplaint.lokasi)"
-                               target="_blank"
-                               class="text-sm text-orange-500 hover:text-orange-600 underline">
-                                Lihat di Google Maps →
-                            </a>
+                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">Lokasi</p>
+                            <div class="flex items-start gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-stone-900 mb-1" x-text="selectedComplaint.lokasi"></p>
+                                    <a :href="'https://maps.google.com/?q=' + encodeURIComponent(selectedComplaint.lokasi)"
+                                       target="_blank"
+                                       class="text-xs text-orange-500 hover:text-orange-600 font-medium">
+                                        Lihat di Google Maps →
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </template>
 
                     {{-- Block C: Reporter info (non-anon only) --}}
                     <template x-if="!selectedComplaint.isAnonim">
                         <div class="px-5 py-4 border-b border-stone-200">
-                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wide mb-3">Pelapor</p>
+                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-3">Pelapor</p>
                             <div class="flex flex-col gap-2.5">
                                 <div class="flex items-center gap-3">
                                     <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
@@ -261,7 +309,7 @@
                     {{-- Block D: Klarifikasi thread --}}
                     <template x-if="!selectedComplaint.isAnonim && klarifikasiOpen">
                         <div class="px-5 py-4">
-                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wide mb-3">Klarifikasi</p>
+                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-3">Klarifikasi</p>
 
                             <template x-if="klarifikasiLoading">
                                 <p class="text-center text-xs text-stone-400 py-4">Memuat...</p>
@@ -280,7 +328,7 @@
                                             </template>
                                             <div :class="msg.dari === 'petugas'
                                                     ? 'bg-orange-500 text-white rounded-2xl rounded-br-sm'
-                                                    : 'bg-stone-100 text-stone-900 rounded-2xl rounded-bl-sm'"
+                                                    : 'bg-white text-stone-900 rounded-2xl rounded-bl-sm border border-stone-100 shadow-sm'"
                                                  class="max-w-[20rem] px-4 py-3 text-sm leading-relaxed"
                                                  x-text="msg.pesan"></div>
                                             <p class="text-[0.6875rem] font-light text-stone-400 mt-1"
@@ -348,15 +396,20 @@
                                 class="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold border-0 cursor-pointer font-sans transition-colors">
                             Tandai Selesai
                         </button>
-                        <button x-show="!selectedComplaint.isAnonim"
+                        {{-- Klarifikasi hanya tersedia jika laporan sudah diambil (id_petugas tidak null) dan bukan anonim --}}
+                        <button x-show="!selectedComplaint.isAnonim && selectedComplaint.id_petugas"
                                 @click="toggleKlarifikasi()"
                                 :class="klarifikasiOpen
                                     ? 'bg-orange-500 text-white'
-                                    : 'border border-stone-200 bg-white text-stone-600 hover:bg-orange-50'"
-                                class="flex-1 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer font-sans transition-colors">
-                            💬 Klarifikasi
+                                    : 'border border-stone-200 bg-white text-stone-600 hover:bg-orange-50 hover:border-orange-300'"
+                                class="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer font-sans transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            Klarifikasi
                         </button>
-                        <button x-show="!['selesai','tidak_valid'].includes(selectedComplaint.status)"
+                        {{-- Takedown hanya tersedia jika laporan sudah diambil (id_petugas tidak null) --}}
+                        <button x-show="!['selesai','tidak_valid'].includes(selectedComplaint.status) && selectedComplaint.id_petugas"
                                 @click="takedownOpen = !takedownOpen"
                                 :class="takedownOpen
                                     ? 'bg-red-500 text-white'

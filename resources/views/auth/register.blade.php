@@ -4,13 +4,13 @@
 
 @section('form')
 <div>
-    <h2 class="text-2xl font-bold text-stone-900 mb-1">Buat Akun Baru</h2>
-    <p class="text-sm font-light text-stone-500 mb-8">Daftar untuk mulai melaporkan pengaduan Anda.</p>
+    <h2 class="text-2xl font-bold text-stone-900 mb-1 tracking-tight">Buat Akun Baru</h2>
+    <p class="text-sm font-light text-stone-500 mb-7">Daftar untuk mulai melaporkan pengaduan Anda.</p>
 
     @if($errors->any())
         <div class="mb-6 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
             @foreach($errors->all() as $e)
-                <div>• {{ $e }}</div>
+                <div class="flex items-start gap-1.5"><span class="text-red-400 shrink-0 mt-0.5">•</span>{{ $e }}</div>
             @endforeach
         </div>
     @endif
@@ -32,7 +32,7 @@
         @foreach($fields as $f)
         <div>
             <label class="block text-sm font-medium text-stone-700 mb-1.5">
-                {{ $f['label'] }} <span class="text-red-500">*</span>
+                {{ $f['label'] }} <span class="text-red-400">*</span>
             </label>
             <input type="{{ $f['type'] }}"
                    name="{{ $f['name'] }}"
@@ -53,14 +53,14 @@
         @endforeach
 
         <button type="submit"
-                class="w-full py-3.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold border-0 cursor-pointer transition-colors mt-2">
+                class="w-full py-3.5 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold border-0 cursor-pointer transition-all shadow-[0_4px_14px_rgba(234,88,12,0.3)] hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(234,88,12,0.38)] active:translate-y-px mt-2">
             Buat Akun
         </button>
     </form>
 
     <p class="mt-6 text-center text-sm text-stone-400">
         Sudah punya akun?
-        <a href="{{ route('login') }}" class="font-semibold text-orange-500 hover:underline">Masuk di sini</a>
+        <a href="{{ route('login') }}" class="font-semibold text-orange-500 hover:text-orange-600 hover:underline transition-colors">Masuk di sini</a>
     </p>
 </div>
 @endsection

@@ -74,7 +74,7 @@ class TakedownTest extends TestCase
         $other = Pengaduan::create([
             'tgl_pengaduan' => now()->toDateString(),
             'nik'           => $this->pengaduan->nik,
-            'isi_laporan'   => 'Laporan milik petugas lain',
+            'isi_laporan'   => 'Laporan yang belum diambil siapapun',
             'status'        => 'menunggu',
             'kategori'      => 'lainnya',
             'id_petugas'    => null,
@@ -82,6 +82,32 @@ class TakedownTest extends TestCase
 
         $this->actingAs($this->petugas, 'petugas')
             ->postJson("/petugas/pengaduan/{$other->id_pengaduan}/takedown", [
+                'reason' => 'Alasan yang panjang dan valid untuk takedown ini.',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_petugas_tidak_bisa_takedown_laporan_milik_petugas_lain(): void
+    {
+        $petugasLain = Petugas::create([
+            'nama_petugas' => 'Petugas Lain',
+            'username'     => 'petugaslain',
+            'password'     => bcrypt('password'),
+            'telp'         => '082200000000',
+            'level'        => 'petugas',
+        ]);
+
+        $milikPetugasLain = Pengaduan::create([
+            'tgl_pengaduan' => now()->toDateString(),
+            'nik'           => $this->pengaduan->nik,
+            'isi_laporan'   => 'Laporan yang sudah diambil petugas lain',
+            'status'        => 'proses',
+            'kategori'      => 'lainnya',
+            'id_petugas'    => $petugasLain->id_petugas,
+        ]);
+
+        $this->actingAs($this->petugas, 'petugas')
+            ->postJson("/petugas/pengaduan/{$milikPetugasLain->id_pengaduan}/takedown", [
                 'reason' => 'Alasan yang panjang dan valid untuk takedown ini.',
             ])
             ->assertForbidden();

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Masyarakat;
+namespace App\Http\Controllers\Petugas;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -11,13 +11,13 @@ class ProfilController extends Controller
 {
     public function index()
     {
-        $user = auth('masyarakat')->user();
-        return view('masyarakat.profil', compact('user'));
+        $petugas = auth('petugas')->user();
+        return view('petugas.profil', compact('petugas'));
     }
 
     public function update(Request $request)
     {
-        $user = auth('masyarakat')->user();
+        $petugas = auth('petugas')->user();
 
         $request->validate([
             'telp'          => ['required', 'string', 'max:13'],
@@ -28,8 +28,8 @@ class ProfilController extends Controller
         $data = ['telp' => $request->telp];
 
         if ($request->hasFile('foto_profil')) {
-            if ($user->foto_profil) {
-                Storage::disk('public')->delete($user->foto_profil);
+            if ($petugas->foto_profil) {
+                Storage::disk('public')->delete($petugas->foto_profil);
             }
             $data['foto_profil'] = $request->file('foto_profil')->store('profil', 'public');
         }
@@ -38,7 +38,7 @@ class ProfilController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        $user->update($data);
+        $petugas->update($data);
 
         return back()->with('success', 'Profil berhasil diperbarui.');
     }

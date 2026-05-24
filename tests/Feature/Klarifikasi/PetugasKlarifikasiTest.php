@@ -103,4 +103,52 @@ class PetugasKlarifikasiTest extends TestCase
             ])
             ->assertStatus(409);
     }
+
+    public function test_petugas_tidak_bisa_klarifikasi_laporan_yang_belum_diambil(): void
+    {
+        $masyarakat = Masyarakat::where('nik', $this->pengaduan->nik)->first();
+
+        $belumDiambil = Pengaduan::create([
+            'tgl_pengaduan' => now()->toDateString(),
+            'nik'           => $masyarakat->nik,
+            'isi_laporan'   => 'Laporan yang belum ada petugasnya',
+            'status'        => 'menunggu',
+            'kategori'      => 'lainnya',
+            'id_petugas'    => null,
+        ]);
+
+        $this->actingAs($this->petugas, 'petugas')
+            ->postJson("/petugas/klarifikasi/{$belumDiambil->id_pengaduan}", [
+                'pesan' => 'Coba kirim klarifikasi ke laporan yang belum diambil',
+            ])
+            ->assertForbidden();
+    }
+
+    public function test_petugas_tidak_bisa_klarifikasi_laporan_milik_petugas_lain(): void
+    {
+        $petugasLain = Petugas::create([
+            'nama_petugas' => 'Petugas Lain',
+            'username'     => 'petugaslain',
+            'password'     => bcrypt('password'),
+            'telp'         => '082200000000',
+            'level'        => 'petugas',
+        ]);
+
+        $masyarakat = Masyarakat::where('nik', $this->pengaduan->nik)->first();
+
+        $milikPetugasLain = Pengaduan::create([
+            'tgl_pengaduan' => now()->toDateString(),
+            'nik'           => $masyarakat->nik,
+            'isi_laporan'   => 'Laporan yang sudah diambil petugas lain',
+            'status'        => 'proses',
+            'kategori'      => 'lainnya',
+            'id_petugas'    => $petugasLain->id_petugas,
+        ]);
+
+        $this->actingAs($this->petugas, 'petugas')
+            ->postJson("/petugas/klarifikasi/{$milikPetugasLain->id_pengaduan}", [
+                'pesan' => 'Coba kirim klarifikasi ke laporan orang lain',
+            ])
+            ->assertForbidden();
+    }
 }

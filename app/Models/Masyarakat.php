@@ -12,7 +12,7 @@ class Masyarakat extends Authenticatable
 
     protected $table = 'masyarakat';
 
-    protected $fillable = ['nik', 'nama', 'username', 'password', 'telp'];
+    protected $fillable = ['nik', 'nama', 'username', 'password', 'telp', 'foto_profil'];
     protected $hidden = ['password'];
 
     public function pengaduan()

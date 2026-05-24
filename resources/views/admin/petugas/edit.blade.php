@@ -3,28 +3,28 @@
 @section('title', 'Edit Petugas')
 
 @section('content')
-<div class="flex-1 overflow-y-auto p-6">
+<div class="flex-1 overflow-y-auto p-6 bg-stone-50">
 
     <div class="flex items-center gap-3 mb-6">
         <a href="{{ route('admin.petugas.index') }}"
-           class="flex items-center justify-center w-8 h-8 rounded-lg border border-stone-200 bg-white text-stone-500 no-underline hover:border-orange-400 hover:text-orange-600 transition-colors">
+           class="flex items-center justify-center w-9 h-9 rounded-xl border border-stone-200 bg-white text-stone-500 no-underline hover:border-orange-300 hover:text-orange-500 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
         </a>
         <div>
-            <h1 class="text-xl font-bold text-stone-900">Edit Petugas</h1>
+            <h1 class="text-xl font-bold text-stone-900 tracking-tight">Edit Petugas</h1>
             <p class="text-sm font-light text-stone-500 mt-0.5">{{ $petugas->nama_petugas }}</p>
         </div>
     </div>
 
     <div class="max-w-[32rem]">
-        <div class="bg-white rounded-xl p-6 shadow-sm">
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-stone-100">
 
             @if($errors->any())
                 <div class="mb-5 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
                     @foreach($errors->all() as $e)
-                        <div>• {{ $e }}</div>
+                        <div class="flex items-start gap-1.5"><span class="text-red-400 shrink-0 mt-0.5">•</span>{{ $e }}</div>
                     @endforeach
                 </div>
             @endif
@@ -67,10 +67,9 @@
                 </div>
 
                 {{-- Password section --}}
-                <div class="border-t border-stone-200 pt-4 mt-5 mb-4">
-                    <p class="text-[0.8125rem] font-medium text-stone-500 mb-3.5">
-                        Ubah Password <span class="font-light">(kosongkan jika tidak diubah)</span>
-                    </p>
+                <div class="border-t border-stone-100 pt-5 mt-5">
+                    <p class="text-[0.8125rem] font-semibold text-stone-600 mb-1">Ubah Password</p>
+                    <p class="text-xs font-light text-stone-400 mb-4">Kosongkan jika tidak ingin mengubah password.</p>
 
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-stone-700 mb-1.5">Password Baru</label>
@@ -92,11 +91,11 @@
 
                 <div class="flex gap-3 mt-6">
                     <button type="submit"
-                            class="flex-1 py-3 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-[0.9375rem] font-semibold border-0 cursor-pointer font-sans transition-colors">
+                            class="flex-1 py-3 px-4 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-[0.9375rem] font-semibold border-0 cursor-pointer font-sans transition-all shadow-sm shadow-orange-200 hover:-translate-y-0.5">
                         Simpan Perubahan
                     </button>
                     <a href="{{ route('admin.petugas.index') }}"
-                       class="px-5 py-3 rounded-xl border border-stone-200 bg-white text-[0.9375rem] font-medium text-stone-500 hover:text-stone-900 no-underline inline-flex items-center transition-colors">
+                       class="px-5 py-3 rounded-xl border border-stone-200 bg-white text-[0.9375rem] font-medium text-stone-500 hover:text-stone-800 hover:border-stone-300 no-underline inline-flex items-center transition-colors">
                         Batal
                     </a>
                 </div>
