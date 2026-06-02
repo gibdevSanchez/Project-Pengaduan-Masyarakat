@@ -15,11 +15,20 @@
          photoPreview: null,
          editMode: false,
          showPwModal: false,
+         showFeedbackModal: false,
+         feedbackPreview: null,
          handleFile(e) {
              const file = e.target.files[0];
              if (!file) return;
              const reader = new FileReader();
              reader.onload = ev => this.photoPreview = ev.target.result;
+             reader.readAsDataURL(file);
+         },
+         handleFeedbackFile(e) {
+             const file = e.target.files[0];
+             if (!file) return;
+             const reader = new FileReader();
+             reader.onload = ev => this.feedbackPreview = ev.target.result;
              reader.readAsDataURL(file);
          }
      }"
@@ -230,6 +239,26 @@
         </div>
     </div>
 
+    {{-- Kirim Feedback card --}}
+    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100">
+        <div class="px-4 py-4 flex items-center gap-3.5">
+            <div class="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                </svg>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-stone-800">Kirim Feedback</p>
+                <p class="text-[0.6875rem] font-light text-stone-400 mt-0.5">Sampaikan masukan atau saran Anda</p>
+            </div>
+            <button type="button"
+                    @click="showFeedbackModal = true"
+                    class="shrink-0 px-4 py-2 rounded-lg bg-orange-100 hover:bg-orange-200 border border-orange-200 text-orange-700 text-xs font-semibold cursor-pointer transition-colors">
+                Kirim
+            </button>
+        </div>
+    </div>
+
     {{-- Logout — must be OUTSIDE the profile form (nested forms are invalid HTML) --}}
     <form method="POST" action="{{ route('logout') }}">
         @csrf
@@ -327,6 +356,86 @@
                 </div>
             </form>
 
+        </div>
+    </div>
+
+    {{-- Feedback modal --}}
+    <div x-show="showFeedbackModal"
+         x-cloak
+         class="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+         @keydown.escape.window="showFeedbackModal = false">
+
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"
+             @click="showFeedbackModal = false"></div>
+
+        <div class="relative w-full max-w-sm mx-4 mb-4 sm:mb-0 bg-white rounded-2xl shadow-2xl overflow-hidden"
+             @click.stop>
+
+            <div class="px-5 pt-5 pb-4 border-b border-stone-100 flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                        </svg>
+                    </div>
+                    <p class="text-[0.9375rem] font-bold text-stone-900 tracking-tight">Kirim Feedback</p>
+                </div>
+                <button type="button"
+                        @click="showFeedbackModal = false"
+                        class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 flex items-center justify-center cursor-pointer transition-colors">
+                    <svg class="w-3.5 h-3.5 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('masyarakat.feedback.store') }}" enctype="multipart/form-data">
+                @csrf
+                <div class="px-5 py-4 flex flex-col gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1.5">Isi Feedback</label>
+                        <textarea name="isi" rows="4" required minlength="5"
+                                  placeholder="Tuliskan masukan, saran, atau keluhan Anda..."
+                                  class="w-full px-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-sm text-stone-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 transition-[border-color,box-shadow] resize-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-stone-700 mb-1.5">Foto <span class="font-light text-stone-400">(opsional)</span></label>
+                        <template x-if="feedbackPreview">
+                            <div class="relative mb-2">
+                                <img :src="feedbackPreview" class="w-full max-h-36 object-cover rounded-xl border border-stone-100">
+                                <button type="button"
+                                        @click="feedbackPreview = null; $refs.feedbackFoto.value = ''"
+                                        class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 flex items-center justify-center border-0 cursor-pointer">
+                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </template>
+                        <label class="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-dashed border-stone-300 bg-stone-50 cursor-pointer hover:bg-stone-100 transition-colors">
+                            <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <span class="text-sm text-stone-500" x-text="feedbackPreview ? 'Ganti foto' : 'Pilih foto'">Pilih foto</span>
+                            <input type="file" name="foto" accept="image/*" class="hidden"
+                                   x-ref="feedbackFoto" @change="handleFeedbackFile($event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="px-5 pb-5 flex gap-3">
+                    <button type="button"
+                            @click="showFeedbackModal = false"
+                            class="flex-1 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 border border-stone-200 text-stone-600 text-sm font-semibold cursor-pointer transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="flex-1 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold border-0 cursor-pointer transition-all shadow-[0_4px_12px_rgba(234,88,12,0.3)] hover:shadow-[0_6px_16px_rgba(234,88,12,0.35)]">
+                        Kirim Feedback
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -3,17 +3,20 @@
 use App\Http\Controllers\Admin\BeritaController as AdminBerita;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\ExpiredDataController;
+use App\Http\Controllers\Admin\FeedbackController as AdminFeedback;
 use App\Http\Controllers\Admin\KlarifikasiController as AdminKlarifikasi;
 use App\Http\Controllers\Admin\PengaduanController as AdminPengaduan;
 use App\Http\Controllers\Admin\PetugasController as AdminPetugas;
 use App\Http\Controllers\Admin\UtilitasController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\Masyarakat\DashboardController as MasyarakatDashboard;
+use App\Http\Controllers\Masyarakat\FeedbackController as MasyarakatFeedback;
 use App\Http\Controllers\Masyarakat\PengaduanController as MasyarakatPengaduan;
 use App\Http\Controllers\Masyarakat\BeritaController;
 use App\Http\Controllers\Masyarakat\ProfilController;
 use App\Http\Controllers\Petugas\BeritaController as PetugasBerita;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboard;
+use App\Http\Controllers\Petugas\FeedbackController as PetugasFeedback;
 use App\Http\Controllers\Petugas\KlarifikasiController as PetugasKlarifikasi;
 use App\Http\Controllers\Petugas\PengaduanController as PetugasPengaduan;
 use App\Http\Controllers\Petugas\ProfilController as PetugasProfil;
@@ -63,6 +66,12 @@ Route::prefix('admin')->middleware(['is.admin'])->group(function () {
     Route::get('/berita/{berita}/edit', [AdminBerita::class, 'edit'])->name('admin.berita.edit');
     Route::put('/berita/{berita}', [AdminBerita::class, 'update'])->name('admin.berita.update');
     Route::delete('/berita/{berita}', [AdminBerita::class, 'destroy'])->name('admin.berita.destroy');
+
+    Route::get('/feedback', [AdminFeedback::class, 'index'])->name('admin.feedback.index');
+    Route::get('/feedback/{feedback}', [AdminFeedback::class, 'show'])->name('admin.feedback.show');
+    Route::post('/feedback/{feedback}/assign', [AdminFeedback::class, 'assign'])->name('admin.feedback.assign');
+    Route::patch('/feedback/{feedback}/penugasan/{penugasan}/status', [AdminFeedback::class, 'updatePenugasanStatus'])->name('admin.feedback.penugasan.status');
+    Route::delete('/feedback/{feedback}/penugasan/{penugasan}', [AdminFeedback::class, 'destroyPenugasan'])->name('admin.feedback.penugasan.destroy');
 });
 
 Route::prefix('petugas')->middleware(['is.petugas', 'update.last.seen'])->group(function () {
@@ -85,6 +94,10 @@ Route::prefix('petugas')->middleware(['is.petugas', 'update.last.seen'])->group(
     Route::get('/berita/{berita}/edit', [PetugasBerita::class, 'edit'])->name('petugas.berita.edit');
     Route::put('/berita/{berita}', [PetugasBerita::class, 'update'])->name('petugas.berita.update');
     Route::delete('/berita/{berita}', [PetugasBerita::class, 'destroy'])->name('petugas.berita.destroy');
+
+    Route::get('/feedback', [PetugasFeedback::class, 'index'])->name('petugas.feedback.index');
+    Route::patch('/feedback/{penugasan}/status', [PetugasFeedback::class, 'updateStatus'])->name('petugas.feedback.status');
+    Route::patch('/feedback/{penugasan}/hide', [PetugasFeedback::class, 'hide'])->name('petugas.feedback.hide');
 });
 
 Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
@@ -98,4 +111,5 @@ Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
     Route::post('/pengaduan', [MasyarakatPengaduan::class, 'store'])->name('masyarakat.pengaduan.store');
     Route::get('/pengaduan/{id}', [MasyarakatPengaduan::class, 'show'])->name('masyarakat.pengaduan.show');
     Route::post('/klarifikasi/{id}', [MasyarakatKlarifikasi::class, 'store'])->name('masyarakat.klarifikasi.store');
+    Route::post('/feedback', [MasyarakatFeedback::class, 'store'])->name('masyarakat.feedback.store');
 });
