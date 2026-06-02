@@ -3,7 +3,20 @@
 @section('title', 'Daftar Pengaduan')
 
 @section('content')
-<div class="flex flex-1 overflow-hidden h-full" x-data="petugasApp()">
+<div class="flex flex-1 overflow-hidden h-full" x-data="petugasApp()" @keydown.escape.window="lightboxSrc = null">
+
+    {{-- Lightbox overlay --}}
+    <div x-show="lightboxSrc" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
+         @click="lightboxSrc = null">
+        <img :src="lightboxSrc" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" @click.stop>
+        <button @click="lightboxSrc = null"
+                class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white border-0 cursor-pointer transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
 
     {{-- Inner toggleable sidebar --}}
     <div x-show="sidebarOpen"
@@ -325,35 +338,134 @@
 
                             <div class="flex flex-col gap-3 mb-4">
                                 <template x-for="(msg, i) in klarifikasiMessages" :key="i">
-                                    <div :class="msg.dari === 'petugas' ? 'flex justify-end' : 'flex justify-start'">
-                                        <div>
-                                            <template x-if="msg.dari === 'masyarakat'">
-                                                <p class="text-[0.6875rem] font-medium text-stone-400 mb-1" x-text="selectedComplaint.nama"></p>
-                                            </template>
-                                            <div :class="msg.dari === 'petugas'
-                                                    ? 'bg-orange-500 text-white rounded-2xl rounded-br-sm'
-                                                    : 'bg-white text-stone-900 rounded-2xl rounded-bl-sm border border-stone-100 shadow-sm'"
-                                                 class="max-w-[20rem] px-4 py-3 text-sm leading-relaxed"
-                                                 x-text="msg.pesan"></div>
-                                            <p class="text-[0.6875rem] font-light text-stone-400 mt-1"
-                                               :class="msg.dari === 'petugas' ? 'text-right' : 'text-left'"
-                                               x-text="msg.created_at"></p>
-                                        </div>
+                                    <div>
+                                        {{-- Tahapan card --}}
+                                        <template x-if="msg.jenis === 'tahapan'">
+                                            <div class="my-2 flex items-start gap-2.5">
+                                                <div class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                                                    <svg class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                    </svg>
+                                                </div>
+                                                <div class="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2">
+                                                    <p class="text-[0.625rem] font-semibold uppercase tracking-wide text-blue-600">Update Progres</p>
+                                                    <p x-text="msg.pesan" class="mt-1 text-sm text-blue-900"></p>
+                                                    <img x-show="msg.foto_url" :src="msg.foto_url"
+                                                         class="mt-2 w-full rounded-lg object-cover max-h-32 border border-blue-200 cursor-zoom-in"
+                                                         @click="lightboxSrc = msg.foto_url">
+                                                    <p x-text="msg.created_at" class="mt-1 text-[0.6875rem] text-blue-400 font-light"></p>
+                                                </div>
+                                            </div>
+                                        </template>
+
+                                        {{-- Penutup card --}}
+                                        <template x-if="msg.jenis === 'penutup'">
+                                            <div class="my-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                                                <p class="text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-600">Pengaduan Diselesaikan</p>
+                                                <p x-text="msg.pesan" class="mt-1 text-sm text-emerald-900 whitespace-pre-line"></p>
+                                                <p x-text="msg.created_at" class="mt-2 text-[0.6875rem] text-emerald-400 font-light"></p>
+                                            </div>
+                                        </template>
+
+                                        {{-- Regular chat bubble --}}
+                                        <template x-if="msg.jenis !== 'tahapan' && msg.jenis !== 'penutup'">
+                                            <div :class="msg.dari === 'petugas' ? 'flex justify-end' : 'flex justify-start'">
+                                                <div class="max-w-[20rem]">
+                                                    <template x-if="msg.dari === 'masyarakat'">
+                                                        <p class="text-[0.6875rem] font-medium text-stone-400 mb-1" x-text="selectedComplaint.nama"></p>
+                                                    </template>
+                                                    <template x-if="msg.dari === 'admin'">
+                                                        <p class="text-[0.6875rem] font-medium text-purple-400 mb-1">Admin</p>
+                                                    </template>
+                                                    <div :class="msg.dari === 'petugas'
+                                                                 ? 'bg-orange-500 text-white rounded-2xl rounded-br-sm'
+                                                                 : (msg.dari === 'admin'
+                                                                    ? 'bg-purple-100 text-purple-900 rounded-2xl rounded-bl-sm border border-purple-200'
+                                                                    : 'bg-white text-stone-900 rounded-2xl rounded-bl-sm border border-stone-100 shadow-sm')"
+                                                         class="px-4 py-3 text-sm leading-relaxed"
+                                                         x-text="msg.pesan"></div>
+                                                    <img x-show="msg.foto_url" :src="msg.foto_url"
+                                                         class="mt-1 w-full rounded-xl object-cover max-h-32 border border-stone-200 cursor-zoom-in"
+                                                         @click="lightboxSrc = msg.foto_url">
+                                                    <p class="text-[0.6875rem] font-light text-stone-400 mt-1"
+                                                       :class="msg.dari === 'petugas' ? 'text-right' : 'text-left'"
+                                                       x-text="msg.created_at"></p>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
 
-                            <template x-if="!['selesai','tidak_valid'].includes(selectedComplaint.status)">
-                                <div class="flex gap-2">
-                                    <input type="text" x-model="klarifikasiInput"
-                                           @keydown.enter.prevent="sendKlarifikasi()"
-                                           placeholder="Tulis pertanyaan untuk masyarakat..."
-                                           class="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-sm font-sans text-stone-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20">
-                                    <button @click="sendKlarifikasi()"
-                                            :disabled="!klarifikasiInput.trim()"
-                                            class="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold border-0 cursor-pointer font-sans transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                                        Kirim
+                            {{-- Tahapan & Selesai: only if this petugas is assigned --}}
+                            <template x-if="selectedComplaint && selectedComplaint.id_petugas == {{ auth('petugas')->user()->id_petugas }} && !['selesai','tidak_valid'].includes(selectedComplaint.status)">
+                                <div class="mb-3 space-y-2">
+                                    {{-- Tambah Tahapan --}}
+                                    <button @click="tahapanOpen = !tahapanOpen"
+                                            class="w-full rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 transition-colors border-0 cursor-pointer font-sans">
+                                        + Tambah Tahapan Proses
                                     </button>
+                                    <div x-show="tahapanOpen" x-cloak class="space-y-2">
+                                        <textarea x-model="tahapanPesan" rows="2" minlength="5" required
+                                                  placeholder="Deskripsikan tahap yang sedang dikerjakan..."
+                                                  class="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm font-sans text-stone-900 outline-none focus:border-blue-400 resize-none"></textarea>
+                                        <div class="flex items-center gap-2">
+                                            <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-xs text-stone-500 cursor-pointer hover:border-blue-300 hover:text-blue-600 transition-colors">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                <span x-text="tahapanFoto ? tahapanFoto.name.substring(0,15)+'…' : 'Lampir foto'"></span>
+                                                <input type="file" accept="image/*" class="hidden"
+                                                       @change="tahapanFoto = $event.target.files[0] || null">
+                                            </label>
+                                            <button x-show="tahapanFoto" @click="tahapanFoto=null"
+                                                    class="text-xs text-red-500 hover:text-red-700 bg-transparent border-0 cursor-pointer font-sans p-0">✕</button>
+                                        </div>
+                                        <button @click="submitTahapan()"
+                                                :disabled="tahapanPesan.trim().length < 5"
+                                                class="w-full rounded-xl bg-blue-600 py-2 text-sm font-semibold text-white hover:bg-blue-700 border-0 cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                            Kirim Tahapan
+                                        </button>
+                                    </div>
+
+                                    {{-- Selesaikan --}}
+                                    <button @click="selesaiOpen = !selesaiOpen"
+                                            class="w-full rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-100 transition-colors border-0 cursor-pointer font-sans">
+                                        Selesaikan Pengaduan
+                                    </button>
+                                    <div x-show="selesaiOpen" x-cloak class="space-y-2">
+                                        <textarea x-model="selesaiPesan" rows="2"
+                                                  placeholder="Pesan tambahan dari Anda (opsional)..."
+                                                  class="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm font-sans text-stone-900 outline-none focus:border-emerald-400 resize-none"></textarea>
+                                        <button @click="submitSelesai()"
+                                                class="w-full rounded-xl bg-emerald-600 py-2 text-sm font-semibold text-white hover:bg-emerald-700 border-0 cursor-pointer font-sans transition-colors">
+                                            Konfirmasi Selesai
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="!['selesai','tidak_valid'].includes(selectedComplaint.status)">
+                                <div class="space-y-2">
+                                    <div class="flex gap-2">
+                                        <input type="text" x-model="klarifikasiInput"
+                                               @keydown.enter.prevent="sendKlarifikasi()"
+                                               placeholder="Tulis pertanyaan untuk masyarakat..."
+                                               class="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-sm font-sans text-stone-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20">
+                                        <label class="flex items-center justify-center w-10 h-10 rounded-xl border border-stone-200 bg-white text-stone-400 cursor-pointer hover:border-orange-300 hover:text-orange-500 transition-colors shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <input type="file" accept="image/*" class="hidden"
+                                                   @change="klarifFoto = $event.target.files[0] || null">
+                                        </label>
+                                        <button @click="sendKlarifikasi()"
+                                                :disabled="!klarifikasiInput.trim()"
+                                                class="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold border-0 cursor-pointer font-sans transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                            Kirim
+                                        </button>
+                                    </div>
+                                    <div x-show="klarifFoto" class="flex items-center gap-2 text-xs text-stone-500">
+                                        <svg class="w-3.5 h-3.5 shrink-0 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"/></svg>
+                                        <span x-text="klarifFoto ? klarifFoto.name : ''"></span>
+                                        <button @click="klarifFoto=null" class="text-red-500 hover:text-red-700 bg-transparent border-0 cursor-pointer font-sans p-0 ml-1">✕</button>
+                                    </div>
                                 </div>
                             </template>
                             <template x-if="['selesai','tidak_valid'].includes(selectedComplaint.status)">
@@ -449,13 +561,20 @@ function petugasApp() {
         searchTimer: null,
         sidebarOpen: false,
         mineOnly: false,
+        lightboxSrc: null,
         klarifikasiOpen: false,
         klarifikasiMessages: [],
         klarifikasiLoading: false,
         klarifikasiInput: '',
+        klarifFoto: null,
         takedownOpen: false,
         takedownReason: '',
         takedownLoading: false,
+        tahapanOpen: false,
+        tahapanPesan: '',
+        tahapanFoto: null,
+        selesaiOpen: false,
+        selesaiPesan: '',
 
         async init() {
             this.$watch('selectedId', () => {
@@ -529,19 +648,22 @@ function petugasApp() {
 
         async sendKlarifikasi() {
             if (!this.klarifikasiInput.trim()) return;
+            const fd = new FormData();
+            fd.append('pesan', this.klarifikasiInput);
+            if (this.klarifFoto) fd.append('foto', this.klarifFoto);
             const res = await fetch(`/petugas/klarifikasi/${this.selectedId}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                body: JSON.stringify({ pesan: this.klarifikasiInput }),
+                body: fd,
             });
             if (res.status === 201) {
                 const msg = await res.json();
                 this.klarifikasiMessages.push(msg);
                 this.klarifikasiInput = '';
+                this.klarifFoto = null;
             }
         },
 
@@ -582,6 +704,48 @@ function petugasApp() {
                 this.takedownReason = '';
             }
             this.takedownLoading = false;
+        },
+
+        async submitTahapan() {
+            if (this.tahapanPesan.trim().length < 5) return;
+            const fd = new FormData();
+            fd.append('pesan', this.tahapanPesan);
+            if (this.tahapanFoto) fd.append('foto', this.tahapanFoto);
+            const res = await fetch(`/petugas/pengaduan/${this.selectedId}/tahapan`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: fd,
+            });
+            if (res.status === 201) {
+                const msg = await res.json();
+                this.klarifikasiMessages.push(msg);
+                this.tahapanPesan = '';
+                this.tahapanFoto = null;
+                this.tahapanOpen = false;
+            }
+        },
+
+        async submitSelesai() {
+            const res = await fetch(`/petugas/pengaduan/${this.selectedId}/selesai`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ pesan_tambahan: this.selesaiPesan }),
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const c = this.complaints.find(c => c.id === this.selectedId);
+                if (c) c.status = data.status;
+                this.selesaiPesan = '';
+                this.selesaiOpen = false;
+                await this.fetchKlarifikasi();
+            }
         },
 
         avatarColor(name) {

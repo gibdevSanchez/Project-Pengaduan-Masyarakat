@@ -20,11 +20,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pengaduan', function (Blueprint $table) {
-            $table->date('tgl_pengaduan')->after('id_pengaduan');
+            $table->date('tgl_pengaduan')->nullable()->after('id_pengaduan');
         });
 
         Schema::table('tanggapan', function (Blueprint $table) {
-            $table->date('tgl_tanggapan')->after('id_pengaduan');
+            $table->date('tgl_tanggapan')->nullable()->after('id_pengaduan');
         });
     }
 };

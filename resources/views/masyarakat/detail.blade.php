@@ -35,7 +35,21 @@ $kategoriCfg = [
 ][$pengaduan->kategori] ?? 'bg-stone-100 text-stone-600';
 @endphp
 
-<div class="p-4 flex flex-col gap-3.5">
+<div class="p-4 flex flex-col gap-3.5" x-data="{ lightboxSrc: null }">
+
+    {{-- Lightbox overlay --}}
+    <div x-show="lightboxSrc" x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 cursor-zoom-out"
+         @click="lightboxSrc = null"
+         @keydown.escape.window="lightboxSrc = null">
+        <img :src="lightboxSrc" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl" @click.stop>
+        <button @click="lightboxSrc = null"
+                class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white border-0 cursor-pointer transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
 
     {{-- Meta badges --}}
     <div class="flex flex-wrap items-center gap-2">
@@ -66,7 +80,9 @@ $kategoriCfg = [
             <div class="mt-3 flex flex-col gap-2">
                 @foreach($pengaduan->fotos as $foto)
                 <img src="{{ Storage::url($foto->foto) }}"
-                     class="w-full rounded-xl object-cover max-h-52 border border-stone-100" alt="Foto bukti">
+                     class="w-full rounded-xl object-cover max-h-52 border border-stone-100 cursor-zoom-in"
+                     alt="Foto bukti"
+                     @click="lightboxSrc = '{{ Storage::url($foto->foto) }}'">
                 @endforeach
             </div>
             @endif
@@ -107,7 +123,7 @@ $kategoriCfg = [
     </div>
 
     {{-- Klarifikasi --}}
-    @if(!is_null($pengaduan->nik) && $pengaduan->klarifikasi->count() > 0)
+    @if(!is_null($pengaduan->masyarakat_id) && $pengaduan->klarifikasi->count() > 0)
     <div>
         <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">
             Klarifikasi dengan Petugas
@@ -115,40 +131,102 @@ $kategoriCfg = [
 
         <div class="flex flex-col gap-2.5 mb-3">
             @foreach($pengaduan->klarifikasi as $k)
-            <div class="{{ $k->dari === 'masyarakat' ? 'flex justify-end' : 'flex justify-start' }}">
-                <div class="max-w-[85%]">
-                    @if($k->dari === 'petugas')
-                    <p class="text-[0.6875rem] font-semibold text-stone-400 mb-1 ml-1">Petugas</p>
-                    @endif
-                    <div @class([
-                        'px-4 py-3 text-sm leading-relaxed rounded-2xl',
-                        'bg-orange-500 text-white rounded-br-sm' => $k->dari === 'masyarakat',
-                        'bg-white text-stone-800 rounded-bl-sm shadow-sm border border-stone-100' => $k->dari !== 'masyarakat',
-                    ])>
-                        {{ $k->pesan }}
+
+                @if($k->jenis === 'tahapan')
+                {{-- Progress Stage Card --}}
+                <div class="flex items-start gap-3 my-2">
+                    <div class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-100">
+                        <svg class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
                     </div>
-                    <p class="text-[0.6875rem] font-light text-stone-400 mt-1 {{ $k->dari === 'masyarakat' ? 'text-right' : 'text-left ml-1' }}">
-                        {{ $k->created_at->format('d M Y, H:i') }}
-                    </p>
+                    <div class="flex-1 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                        <p class="text-[0.625rem] font-semibold uppercase tracking-wide text-blue-600">Update Progres</p>
+                        <p class="mt-1 text-sm text-blue-900">{{ $k->pesan }}</p>
+                        @if($k->foto)
+                        <img src="{{ Storage::url($k->foto) }}"
+                             class="mt-2 w-full rounded-lg object-cover max-h-40 border border-blue-200 cursor-zoom-in"
+                             alt="foto"
+                             @click="lightboxSrc = '{{ Storage::url($k->foto) }}'">
+                        @endif
+                        <p class="mt-2 text-[0.6875rem] text-blue-400 font-light">{{ $k->created_at->format('d M Y, H:i') }}</p>
+                    </div>
                 </div>
-            </div>
+
+                @elseif($k->jenis === 'penutup')
+                {{-- Closing Card --}}
+                <div class="my-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
+                    <p class="text-[0.625rem] font-semibold uppercase tracking-wide text-emerald-600">Pengaduan Diselesaikan</p>
+                    <p class="mt-2 whitespace-pre-line text-sm text-emerald-900">{{ $k->pesan }}</p>
+                    <p class="mt-3 text-[0.6875rem] text-emerald-500 font-light">{{ $k->created_at->format('d M Y, H:i') }}</p>
+                </div>
+
+                @else
+                {{-- Regular chat bubble --}}
+                <div class="{{ $k->dari === 'masyarakat' ? 'flex justify-end' : 'flex justify-start' }}">
+                    <div class="max-w-[85%]">
+                        @if($k->dari !== 'masyarakat')
+                        <p class="text-[0.6875rem] font-semibold text-stone-400 mb-1 ml-1">
+                            {{ $k->dari === 'admin' ? 'Admin' : 'Petugas' }}
+                        </p>
+                        @endif
+                        <div @class([
+                            'px-4 py-3 text-sm leading-relaxed rounded-2xl',
+                            'bg-orange-500 text-white rounded-br-sm'                              => $k->dari === 'masyarakat',
+                            'bg-purple-100 text-purple-900 rounded-bl-sm border border-purple-200'=> $k->dari === 'admin',
+                            'bg-white text-stone-800 rounded-bl-sm shadow-sm border border-stone-100' => $k->dari === 'petugas',
+                        ])>
+                            {{ $k->pesan }}
+                        </div>
+                        @if($k->foto)
+                        <img src="{{ Storage::url($k->foto) }}"
+                             class="mt-1.5 w-full max-w-[85%] rounded-xl object-cover max-h-40 border border-stone-200 cursor-zoom-in {{ $k->dari === 'masyarakat' ? 'ml-auto' : '' }}"
+                             alt="foto"
+                             @click="lightboxSrc = '{{ Storage::url($k->foto) }}'">
+                        @endif
+                        <p class="text-[0.6875rem] font-light text-stone-400 mt-1 {{ $k->dari === 'masyarakat' ? 'text-right' : 'text-left ml-1' }}">
+                            {{ $k->created_at->format('d M Y, H:i') }}
+                        </p>
+                    </div>
+                </div>
+                @endif
+
             @endforeach
         </div>
 
         @php $lastK = $pengaduan->klarifikasi->last(); @endphp
         @if($lastK && $lastK->dari === 'petugas' && !in_array($pengaduan->status, ['selesai', 'tidak_valid']))
-        <form action="{{ route('masyarakat.klarifikasi.store', $pengaduan->id_pengaduan) }}" method="POST">
+        <form action="{{ route('masyarakat.klarifikasi.store', $pengaduan->id_pengaduan) }}" method="POST"
+              enctype="multipart/form-data"
+              x-data="{ fotoPreview: null }">
             @csrf
             <div class="flex gap-2">
                 <input type="text" name="pesan" required
                        placeholder="Tulis jawaban Anda..."
                        class="flex-1 px-4 py-2.5 rounded-xl border border-stone-200 bg-white text-sm font-sans text-stone-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20">
+                <label class="flex items-center justify-center w-10 h-10 rounded-xl border border-stone-200 bg-white text-stone-400 cursor-pointer hover:border-orange-300 hover:text-orange-500 transition-colors shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <input type="file" name="foto" accept="image/*" class="hidden"
+                           @change="const f=$event.target.files[0]; if(f){const r=new FileReader();r.onload=e=>fotoPreview=e.target.result;r.readAsDataURL(f)}else{fotoPreview=null}">
+                </label>
                 <button type="submit"
                         class="px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold border-0 cursor-pointer font-sans transition-colors">
                     Kirim
                 </button>
             </div>
+            <template x-if="fotoPreview">
+                <div class="mt-2 relative inline-block">
+                    <img :src="fotoPreview" class="h-16 rounded-lg border border-stone-200 object-cover">
+                    <button type="button" @click="fotoPreview=null; $el.closest('form').querySelector('[name=foto]').value=''"
+                            class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center border-0 cursor-pointer text-xs font-bold">✕</button>
+                </div>
+            </template>
             @error('pesan')
+            <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+            @enderror
+            @error('foto')
             <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
             @enderror
         </form>

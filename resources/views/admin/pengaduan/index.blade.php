@@ -14,19 +14,29 @@
         </div>
     </div>
 
-    {{-- Filter bar --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 p-4 mb-4 flex flex-wrap gap-2 items-center">
-        @foreach(['' => 'Semua', 'menunggu' => 'Menunggu', 'proses' => 'Proses', 'selesai' => 'Selesai', 'tidak_valid' => 'Tidak Valid', 'deleted' => 'Dihapus'] as $val => $lbl)
-        <a href="{{ request()->fullUrlWithQuery(['filter' => $val, 'status' => '', 'page' => 1]) }}"
-           @class([
-               'px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all',
-               'bg-orange-500 text-white border-orange-500 shadow-sm' => (request('filter', request('status', '')) === $val),
-               'bg-white text-stone-500 border-stone-200 hover:border-orange-300 hover:text-stone-700' => (request('filter', request('status', '')) !== $val),
-           ])>{{ $lbl }}</a>
+    {{-- Tab Navigation --}}
+    <div class="mb-4 flex gap-0 border-b border-gray-200 overflow-x-auto">
+        @foreach ([
+            'all'      => 'Semua',
+            'menunggu' => 'Menunggu',
+            'proses'   => 'Diproses',
+            'selesai'  => 'Selesai',
+            'invalid'  => 'Tidak Valid',
+        ] as $key => $label)
+            <a href="{{ route('admin.pengaduan.index', array_merge(request()->except('tab', 'page'), ['tab' => $key])) }}"
+               class="whitespace-nowrap px-4 py-2.5 text-sm font-medium border-b-2 transition-colors
+                      {{ $tab === $key
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700' }}">
+                {{ $label }}
+            </a>
         @endforeach
+    </div>
 
+    {{-- Kategori Filter --}}
+    <div class="mb-4 flex justify-end">
         <select onchange="window.location=this.value"
-                class="ml-auto px-3 py-1.5 rounded-full text-xs border border-stone-200 bg-white text-stone-500 outline-none cursor-pointer hover:border-orange-300 transition-colors">
+                class="px-3 py-1.5 rounded-full text-xs border border-stone-200 bg-white text-stone-500 outline-none cursor-pointer hover:border-orange-300 transition-colors">
             <option value="{{ request()->fullUrlWithQuery(['kategori' => '', 'page' => 1]) }}" {{ !request('kategori') ? 'selected' : '' }}>Semua Kategori</option>
             @foreach(['infrastruktur', 'lingkungan', 'keamanan', 'sosial', 'lainnya'] as $k)
             <option value="{{ request()->fullUrlWithQuery(['kategori' => $k, 'page' => 1]) }}" {{ request('kategori') === $k ? 'selected' : '' }}>
@@ -37,7 +47,7 @@
     </div>
 
     {{-- Table --}}
-    <div class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-sm border border-stone-100">
         <table class="w-full text-sm">
             <thead>
                 <tr class="bg-stone-50 border-b border-stone-200">
@@ -68,16 +78,13 @@
                     'lainnya'       => 'bg-stone-100 text-stone-600',
                 ][$p->kategori] ?? 'bg-stone-100 text-stone-600';
                 @endphp
-                <tr class="{{ $p->trashed() ? 'opacity-60 bg-stone-50/60' : 'hover:bg-orange-50/40' }} transition-colors">
+                <tr class="hover:bg-orange-50/40 transition-colors">
                     <td class="px-4 py-3 text-xs text-stone-400 font-mono">#{{ $p->id_pengaduan }}</td>
                     <td class="px-4 py-3 text-xs text-stone-500 whitespace-nowrap">{{ $p->created_at->format('d M Y') }}</td>
                     <td class="px-4 py-3">
-                        <span class="{{ $p->trashed() ? 'line-through text-stone-400' : 'text-stone-800 font-medium' }} text-sm">
+                        <span class="text-stone-800 font-medium text-sm">
                             {{ $p->masyarakat?->nama ?? 'Anonim' }}
                         </span>
-                        @if($p->trashed())
-                        <span class="ml-1 text-[0.625rem] text-red-400 font-medium bg-red-50 px-1.5 py-0.5 rounded-full">Dihapus</span>
-                        @endif
                     </td>
                     <td class="px-4 py-3 text-xs text-stone-500 max-w-[180px] truncate">
                         {{ Str::limit($p->isi_laporan, 55) }}
@@ -128,7 +135,7 @@
                                         <select name="id_petugas" class="flex-1 text-xs px-2 py-1.5 border border-stone-200 rounded-lg outline-none bg-stone-50 font-sans cursor-pointer">
                                             <option value="">– Pilih –</option>
                                             @foreach($petugasList as $pt)
-                                            <option value="{{ $pt->id_petugas }}" {{ $p->id_petugas == $pt->id_petugas ? 'selected' : '' }}>
+                                            <option value="{{ $pt->id_petugas }}" {{ $p->id_petugas === $pt->id_petugas ? 'selected' : '' }}>
                                                 {{ $pt->nama_petugas }}
                                             </option>
                                             @endforeach
@@ -141,7 +148,6 @@
 
                                 {{-- Hapus --}}
                                 <div class="border-t border-stone-100 pt-1 mt-0.5">
-                                    @if(!$p->trashed())
                                     <form method="POST" action="{{ route('admin.pengaduan.destroy', $p->id_pengaduan) }}">
                                         @csrf @method('DELETE')
                                         <button type="submit" onclick="return confirm('Hapus pengaduan ini? Admin masih bisa melihatnya.')"
@@ -149,7 +155,6 @@
                                             Hapus (soft)
                                         </button>
                                     </form>
-                                    @endif
                                     <form method="POST" action="{{ route('admin.pengaduan.force-destroy', $p->id_pengaduan) }}">
                                         @csrf @method('DELETE')
                                         <button type="submit" onclick="return confirm('HAPUS PERMANEN dari database? Tidak dapat dibatalkan!')"

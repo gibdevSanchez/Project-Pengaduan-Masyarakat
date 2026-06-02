@@ -9,7 +9,7 @@ class Klarifikasi extends Model
     protected $table = 'klarifikasi';
     protected $primaryKey = 'id_klarifikasi';
 
-    protected $fillable = ['id_pengaduan', 'pesan', 'dari', 'petugas_id', 'masyarakat_id'];
+    protected $fillable = ['id_pengaduan', 'pesan', 'foto', 'dari', 'jenis', 'petugas_id', 'masyarakat_id'];
 
     public function pengaduan()
     {

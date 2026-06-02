@@ -8,16 +8,37 @@
     <div class="absolute inset-0 pointer-events-none opacity-[0.1]"
          style="background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:20px 20px;"></div>
 
-    <div class="relative px-4 pt-5 pb-0">
-        <div class="flex items-center justify-between mb-4">
-            <div>
-                <p class="text-[0.6875rem] text-white/70 font-light">Selamat datang,</p>
-                <p class="text-base font-bold text-white mt-0.5 tracking-tight">{{ $user->nama }}</p>
+    <div class="relative px-4 pt-4 pb-0">
+        <div class="flex items-start justify-between mb-3">
+            {{-- Real-time clock --}}
+            <div x-data="{
+                time: '',
+                date: '',
+                init() {
+                    this.update();
+                    setInterval(() => this.update(), 1000);
+                },
+                update() {
+                    const n = new Date();
+                    const days  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+                    this.time = String(n.getHours()).padStart(2,'0') + ':' +
+                                String(n.getMinutes()).padStart(2,'0') + ':' +
+                                String(n.getSeconds()).padStart(2,'0');
+                    this.date = days[n.getDay()] + ', ' + n.getDate() + ' ' +
+                                months[n.getMonth()] + ' ' + n.getFullYear();
+                }
+            }" x-init="init()">
+                <p class="text-2xl font-bold text-white leading-none tracking-tight tabular-nums" x-text="time">00:00:00</p>
+                <p class="text-[0.6875rem] text-white/65 font-light mt-1" x-text="date"></p>
             </div>
-            <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-base">
+            {{-- Avatar --}}
+            <div class="w-10 h-10 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-bold text-base shrink-0">
                 {{ strtoupper(substr($user->nama, 0, 1)) }}
             </div>
         </div>
+
+       
 
         {{-- Stats strip --}}
         @php

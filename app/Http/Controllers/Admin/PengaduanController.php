@@ -11,27 +11,35 @@ class PengaduanController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Pengaduan::withTrashed()->with(['masyarakat', 'petugasAssigned']);
+        $tab   = $request->input('tab', 'all');
+        $query = Pengaduan::with(['masyarakat', 'petugasAssigned']);
 
-        if ($request->filter === 'deleted') {
-            $query->onlyTrashed();
-        } elseif ($request->status) {
-            $query->where('status', $request->status);
-        }
+        match ($tab) {
+            'invalid'                       => $query->where('status', 'tidak_valid'),
+            'menunggu', 'proses', 'selesai' => $query->where('status', $tab),
+            default                         => $query->where('status', '!=', 'tidak_valid'),
+        };
 
         if ($request->kategori) {
             $query->where('kategori', $request->kategori);
         }
 
+        if ($request->search) {
+            $query->where('isi_laporan', 'like', "%{$request->search}%");
+        }
+
         $pengaduan   = $query->latest()->paginate(20)->withQueryString();
         $petugasList = Petugas::where('level', 'petugas')->get();
 
-        return view('admin.pengaduan.index', compact('pengaduan', 'petugasList'));
+        return view('admin.pengaduan.index', compact('pengaduan', 'petugasList', 'tab'));
     }
 
     public function updateStatus(Request $request, string $id)
     {
-        $request->validate(['status' => 'required|in:menunggu,proses,selesai']);
+        $request->validate([
+            'status' => 'required|in:menunggu,proses,selesai,tidak_valid',
+        ]);
+
         $pengaduan = Pengaduan::withTrashed()->findOrFail($id);
         $pengaduan->update([
             'status'     => $request->status,
@@ -52,14 +60,12 @@ class PengaduanController extends Controller
     public function destroy(string $id)
     {
         Pengaduan::findOrFail($id)->delete();
-
         return back()->with('success', 'Pengaduan dihapus (bisa dipulihkan).');
     }
 
     public function forceDestroy(string $id)
     {
         Pengaduan::withTrashed()->findOrFail($id)->forceDelete();
-
-        return back()->with('success', 'Pengaduan dihapus permanen dari database.');
+        return back()->with('success', 'Pengaduan dihapus permanen.');
     }
 }

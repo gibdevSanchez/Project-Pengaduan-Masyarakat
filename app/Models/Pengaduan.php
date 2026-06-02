@@ -12,9 +12,14 @@ class Pengaduan extends Model
     protected $table = 'pengaduan';
     protected $primaryKey = 'id_pengaduan';
 
+    protected $casts = [
+        'selesai_at' => 'datetime',
+    ];
+
     protected $fillable = [
         'masyarakat_id', 'isi_laporan', 'status',
         'kategori', 'lokasi', 'id_petugas', 'selesai_at', 'takedown_reason',
+        'created_at', 'updated_at',
     ];
 
     public function masyarakat()

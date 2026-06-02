@@ -1,13 +1,18 @@
 <?php
 
+use App\Http\Controllers\Admin\BeritaController as AdminBerita;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Http\Controllers\Admin\ExpiredDataController;
+use App\Http\Controllers\Admin\KlarifikasiController as AdminKlarifikasi;
 use App\Http\Controllers\Admin\PengaduanController as AdminPengaduan;
 use App\Http\Controllers\Admin\PetugasController as AdminPetugas;
+use App\Http\Controllers\Admin\UtilitasController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\Masyarakat\DashboardController as MasyarakatDashboard;
 use App\Http\Controllers\Masyarakat\PengaduanController as MasyarakatPengaduan;
 use App\Http\Controllers\Masyarakat\BeritaController;
 use App\Http\Controllers\Masyarakat\ProfilController;
+use App\Http\Controllers\Petugas\BeritaController as PetugasBerita;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboard;
 use App\Http\Controllers\Petugas\KlarifikasiController as PetugasKlarifikasi;
 use App\Http\Controllers\Petugas\PengaduanController as PetugasPengaduan;
@@ -41,9 +46,26 @@ Route::prefix('admin')->middleware(['is.admin'])->group(function () {
     Route::post('/pengaduan/{id}/assign', [AdminPengaduan::class, 'assign'])->name('admin.pengaduan.assign');
     Route::delete('/pengaduan/{id}/force', [AdminPengaduan::class, 'forceDestroy'])->name('admin.pengaduan.force-destroy');
     Route::delete('/pengaduan/{id}', [AdminPengaduan::class, 'destroy'])->name('admin.pengaduan.destroy');
+
+    Route::get('/expired', [ExpiredDataController::class, 'index'])->name('admin.expired.index');
+    Route::delete('/expired/all', [ExpiredDataController::class, 'destroyAll'])->name('admin.expired.destroy-all');
+    Route::delete('/expired/{id}', [ExpiredDataController::class, 'destroy'])->name('admin.expired.destroy');
+
+    Route::get('/klarifikasi/{id}', [AdminKlarifikasi::class, 'index'])->name('admin.klarifikasi.index');
+    Route::post('/klarifikasi/{id}', [AdminKlarifikasi::class, 'store'])->name('admin.klarifikasi.store');
+
+    Route::get('/utilitas', [UtilitasController::class, 'index'])->name('admin.utilitas');
+    Route::post('/utilitas', [UtilitasController::class, 'save'])->name('admin.utilitas.save');
+
+    Route::get('/berita', [AdminBerita::class, 'index'])->name('admin.berita.index');
+    Route::get('/berita/create', [AdminBerita::class, 'create'])->name('admin.berita.create');
+    Route::post('/berita', [AdminBerita::class, 'store'])->name('admin.berita.store');
+    Route::get('/berita/{berita}/edit', [AdminBerita::class, 'edit'])->name('admin.berita.edit');
+    Route::put('/berita/{berita}', [AdminBerita::class, 'update'])->name('admin.berita.update');
+    Route::delete('/berita/{berita}', [AdminBerita::class, 'destroy'])->name('admin.berita.destroy');
 });
 
-Route::prefix('petugas')->middleware(['is.petugas'])->group(function () {
+Route::prefix('petugas')->middleware(['is.petugas', 'update.last.seen'])->group(function () {
     Route::get('/dashboard', [PetugasDashboard::class, 'index'])->name('petugas.dashboard');
     Route::get('/profil', [PetugasProfil::class, 'index'])->name('petugas.profil');
     Route::put('/profil', [PetugasProfil::class, 'update'])->name('petugas.profil.update');
@@ -54,6 +76,15 @@ Route::prefix('petugas')->middleware(['is.petugas'])->group(function () {
     Route::post('/pengaduan/{id}/takedown', [PetugasPengaduan::class, 'takedown'])->name('petugas.pengaduan.takedown');
     Route::get('/klarifikasi/{id}', [PetugasKlarifikasi::class, 'index'])->name('petugas.klarifikasi.index');
     Route::post('/klarifikasi/{id}', [PetugasKlarifikasi::class, 'store'])->name('petugas.klarifikasi.store');
+    Route::post('/pengaduan/{id}/tahapan', [PetugasKlarifikasi::class, 'storeTahapan'])->name('petugas.pengaduan.tahapan');
+    Route::post('/pengaduan/{id}/selesai', [PetugasKlarifikasi::class, 'storeSelesai'])->name('petugas.pengaduan.selesai');
+
+    Route::get('/berita', [PetugasBerita::class, 'index'])->name('petugas.berita.index');
+    Route::get('/berita/create', [PetugasBerita::class, 'create'])->name('petugas.berita.create');
+    Route::post('/berita', [PetugasBerita::class, 'store'])->name('petugas.berita.store');
+    Route::get('/berita/{berita}/edit', [PetugasBerita::class, 'edit'])->name('petugas.berita.edit');
+    Route::put('/berita/{berita}', [PetugasBerita::class, 'update'])->name('petugas.berita.update');
+    Route::delete('/berita/{berita}', [PetugasBerita::class, 'destroy'])->name('petugas.berita.destroy');
 });
 
 Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
@@ -62,6 +93,7 @@ Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
     Route::get('/riwayat', [MasyarakatDashboard::class, 'riwayat'])->name('masyarakat.riwayat');
     Route::get('/profil', [ProfilController::class, 'index'])->name('masyarakat.profil');
     Route::put('/profil', [ProfilController::class, 'update'])->name('masyarakat.profil.update');
+    Route::put('/profil/password', [ProfilController::class, 'updatePassword'])->name('masyarakat.profil.password');
     Route::get('/pengaduan/create', [MasyarakatPengaduan::class, 'create'])->name('masyarakat.pengaduan.create');
     Route::post('/pengaduan', [MasyarakatPengaduan::class, 'store'])->name('masyarakat.pengaduan.store');
     Route::get('/pengaduan/{id}', [MasyarakatPengaduan::class, 'show'])->name('masyarakat.pengaduan.show');

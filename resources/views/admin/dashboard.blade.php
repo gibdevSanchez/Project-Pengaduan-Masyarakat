@@ -17,44 +17,81 @@
         <p class="text-sm font-light text-stone-500 mt-0.5">Ringkasan data pengaduan masyarakat</p>
     </div>
 
-    {{-- KPI stat cards --}}
-    @php
-    $cards = [
-        ['label' => 'Total Pengaduan', 'val' => $stats['total'],    'sub' => 'Semua pengaduan masuk',
-         'accent' => 'bg-orange-500',  'icon_bg' => 'bg-gradient-to-br from-orange-100 to-orange-50',
-         'icon_stroke' => 'text-orange-600',
-         'icon' => 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
-        ['label' => 'Menunggu',        'val' => $stats['menunggu'], 'sub' => 'Belum ditangani',
-         'accent' => 'bg-amber-500',   'icon_bg' => 'bg-gradient-to-br from-amber-100 to-amber-50',
-         'icon_stroke' => 'text-amber-600',
-         'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'],
-        ['label' => 'Diproses',        'val' => $stats['proses'],   'sub' => 'Sedang ditindaklanjuti',
-         'accent' => 'bg-blue-500',    'icon_bg' => 'bg-gradient-to-br from-blue-100 to-blue-50',
-         'icon_stroke' => 'text-blue-600',
-         'icon' => 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15'],
-        ['label' => 'Selesai',         'val' => $stats['selesai'],  'sub' => 'Telah diselesaikan',
-         'accent' => 'bg-emerald-500', 'icon_bg' => 'bg-gradient-to-br from-emerald-100 to-emerald-50',
-         'icon_stroke' => 'text-emerald-600',
-         'icon' => 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'],
-    ];
-    @endphp
-
-    <div class="grid grid-cols-4 gap-4 mb-6">
-        @foreach($cards as $c)
-        <div class="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 overflow-hidden relative">
-            <div class="absolute left-0 top-0 bottom-0 w-1 {{ $c['accent'] }} rounded-l-2xl"></div>
-            <div class="flex items-start justify-between mb-3.5 pl-2">
-                <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-widest leading-snug">{{ $c['label'] }}</p>
-                <div class="w-10 h-10 rounded-xl {{ $c['icon_bg'] }} flex items-center justify-center shrink-0 ml-2">
-                    <svg class="w-5 h-5 {{ $c['icon_stroke'] }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $c['icon'] }}"/>
-                    </svg>
-                </div>
-            </div>
-            <p class="stat-number font-black text-[2.5rem] text-stone-900 leading-none tracking-tight pl-2" data-count="{{ $c['val'] }}">0</p>
-            <p class="text-xs font-light text-stone-400 mt-1.5 pl-2">{{ $c['sub'] }}</p>
+    {{-- Stat Cards --}}
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total Pengaduan</p>
+            <p class="mt-1 text-3xl font-bold text-gray-900">{{ $stats['total'] }}</p>
         </div>
-        @endforeach
+
+        <div class="rounded-xl bg-yellow-50 p-5 shadow-sm ring-1 ring-yellow-100">
+            <p class="text-xs font-medium uppercase tracking-wide text-yellow-700">Menunggu</p>
+            <p class="mt-1 text-3xl font-bold text-yellow-900">{{ $stats['menunggu'] }}</p>
+            <p class="mt-1 text-xs text-yellow-600">+{{ $stats['menungguToday'] }} hari ini</p>
+        </div>
+
+        <div class="rounded-xl bg-blue-50 p-5 shadow-sm ring-1 ring-blue-100">
+            <p class="text-xs font-medium uppercase tracking-wide text-blue-700">Diproses</p>
+            <p class="mt-1 text-3xl font-bold text-blue-900">{{ $stats['proses'] }}</p>
+            <p class="mt-1 text-xs text-blue-600">{{ $stats['petugasAktif'] }} petugas aktif</p>
+        </div>
+
+        <div class="rounded-xl bg-green-50 p-5 shadow-sm ring-1 ring-green-100">
+            <p class="text-xs font-medium uppercase tracking-wide text-green-700">Selesai</p>
+            <p class="mt-1 text-3xl font-bold text-green-900">{{ $stats['selesai'] }}</p>
+            <p class="mt-1 text-xs text-green-600">{{ $stats['completionRate'] }}% selesai (7 hari)</p>
+        </div>
+    </div>
+
+    {{-- Weekly Bar Chart --}}
+    <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100"
+         x-data="weeklyChart({!! $weeklyData->toJson() !!})">
+        <h3 class="mb-4 text-sm font-semibold text-gray-700">Pengaduan Masuk per Minggu (8 minggu terakhir)</h3>
+        <div class="flex items-end gap-2" style="height:8rem;">
+            <template x-for="(bar, i) in bars" :key="i">
+                <div class="flex flex-1 flex-col items-center gap-1">
+                    <span x-text="bar.count" class="text-xs text-gray-500"></span>
+                    <div class="w-full rounded-t bg-blue-400 transition-all"
+                         :style="`height:${bar.height}%`"></div>
+                    <span x-text="bar.label"
+                          class="truncate text-center text-xs text-gray-400 w-full"></span>
+                </div>
+            </template>
+        </div>
+    </div>
+
+    {{-- Online Petugas + Chart + Recent --}}
+    <div class="mt-6 rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-gray-700">Petugas Aktif Sekarang</h3>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                {{ $onlinePetugas->count() }} online
+            </span>
+        </div>
+        @if($onlinePetugas->isEmpty())
+        <p class="text-sm text-stone-400 font-light italic">Tidak ada petugas yang aktif saat ini.</p>
+        @else
+        <div class="flex flex-wrap gap-3">
+            @foreach($onlinePetugas as $op)
+            <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-stone-50 border border-stone-100">
+                @if($op->foto_profil)
+                <img src="{{ Storage::url($op->foto_profil) }}" alt="{{ $op->nama_petugas }}"
+                     class="w-8 h-8 rounded-full object-cover shrink-0 ring-2 ring-emerald-200">
+                @else
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-xs font-bold shrink-0 ring-2 ring-emerald-200">
+                    {{ strtoupper(substr($op->nama_petugas, 0, 1)) }}
+                </div>
+                @endif
+                <div>
+                    <p class="text-sm font-semibold text-stone-900 leading-snug">{{ $op->nama_petugas }}</p>
+                    <p class="text-[0.6875rem] text-stone-400 font-light">{{ $op->last_seen_at->diffForHumans() }}</p>
+                </div>
+                <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 ml-1"></span>
+            </div>
+            @endforeach
+        </div>
+        @endif
     </div>
 
     {{-- Chart + Recent --}}
@@ -119,6 +156,18 @@
 
 @push('scripts')
 <script>
+function weeklyChart(data) {
+    const entries = Object.entries(data);
+    const max = Math.max(...entries.map(([, v]) => v), 1);
+    return {
+        bars: entries.map(([week, count]) => ({
+            label: 'W' + week.split('-')[1],
+            count,
+            height: Math.round((count / max) * 100),
+        })),
+    };
+}
+
 document.querySelectorAll('.stat-number').forEach(el => {
     const target = parseInt(el.dataset.count);
     const obj = { val: 0 };

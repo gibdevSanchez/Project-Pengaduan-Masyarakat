@@ -6,12 +6,16 @@ use App\Http\Controllers\Controller;
 use App\Models\Klarifikasi;
 use App\Models\Pengaduan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class KlarifikasiController extends Controller
 {
     public function store(Request $request, $id)
     {
-        $request->validate(['pesan' => 'required|string|min:3']);
+        $request->validate([
+            'pesan' => 'required|string|min:3',
+            'foto'  => 'nullable|image|max:3072',
+        ]);
 
         $masyarakat = auth('masyarakat')->user();
         $pengaduan  = Pengaduan::where('id_pengaduan', $id)
@@ -23,12 +27,18 @@ class KlarifikasiController extends Controller
         $last = Klarifikasi::where('id_pengaduan', $id)->latest('id_klarifikasi')->first();
         abort_if(is_null($last) || $last->dari !== 'petugas', 403, 'Tidak ada pertanyaan yang menunggu jawaban.');
 
-        Klarifikasi::create([
-            'id_pengaduan' => $id,
-            'pesan'        => $request->pesan,
-            'dari'         => 'masyarakat',
-            'masyarakat_id'=> $masyarakat->id,
-        ]);
+        $data = [
+            'id_pengaduan'  => $id,
+            'pesan'         => $request->pesan,
+            'dari'          => 'masyarakat',
+            'masyarakat_id' => $masyarakat->id,
+        ];
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('klarifikasi', 'public');
+        }
+
+        Klarifikasi::create($data);
 
         return redirect()->back()->with('success', 'Jawaban berhasil dikirim.');
     }

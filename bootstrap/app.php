@@ -13,9 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'is.admin'      => \App\Http\Middleware\IsAdmin::class,
-            'is.petugas'    => \App\Http\Middleware\IsPetugas::class,
-            'is.masyarakat' => \App\Http\Middleware\IsMasyarakat::class,
+            'is.admin'        => \App\Http\Middleware\IsAdmin::class,
+            'is.petugas'      => \App\Http\Middleware\IsPetugas::class,
+            'is.masyarakat'   => \App\Http\Middleware\IsMasyarakat::class,
+            'update.last.seen'=> \App\Http\Middleware\UpdateLastSeen::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

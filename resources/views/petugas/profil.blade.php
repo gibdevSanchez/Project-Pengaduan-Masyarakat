@@ -78,6 +78,7 @@
                     <div>
                         <p class="text-sm font-semibold text-stone-900">{{ $petugas->nama_petugas }}</p>
                         <p class="text-xs font-light text-stone-400 mt-0.5 capitalize">{{ $petugas->level }}</p>
+                        <p class="text-[0.6875rem] font-light text-stone-300 mt-0.5">Bergabung {{ $petugas->created_at->format('d M Y') }}</p>
                         <button type="button" @click="$refs.fotoInput.click()"
                                 class="mt-2 text-xs font-medium text-orange-500 hover:text-orange-600 bg-transparent border-0 p-0 cursor-pointer font-sans">
                             Ganti foto profil
@@ -88,6 +89,22 @@
                 <input type="file" name="foto_profil" accept="image/*" class="hidden"
                        x-ref="fotoInput" @change="handleFile($event)">
                 @error('foto_profil')<p class="text-xs text-red-500 mt-2">{{ $message }}</p>@enderror
+
+                {{-- Stats (close to photo) --}}
+                <div class="mt-5 pt-4 border-t border-stone-100 grid grid-cols-3 gap-3">
+                    <div class="rounded-xl bg-stone-50 border border-stone-100 p-3 text-center">
+                        <p class="text-xl font-bold text-stone-900">{{ $stats['total'] }}</p>
+                        <p class="mt-0.5 text-[0.6875rem] text-stone-500">Total Diambil</p>
+                    </div>
+                    <div class="rounded-xl bg-emerald-50 border border-emerald-100 p-3 text-center">
+                        <p class="text-xl font-bold text-emerald-700">{{ $stats['selesai'] }}</p>
+                        <p class="mt-0.5 text-[0.6875rem] text-stone-500">Diselesaikan</p>
+                    </div>
+                    <div class="rounded-xl bg-red-50 border border-red-100 p-3 text-center">
+                        <p class="text-xl font-bold text-red-600">{{ $stats['ditolak'] }}</p>
+                        <p class="mt-0.5 text-[0.6875rem] text-stone-500">Ditakedown</p>
+                    </div>
+                </div>
             </div>
 
             {{-- Informasi --}}
@@ -150,6 +167,7 @@
                 Simpan Perubahan
             </button>
         </form>
+
     </div>
 </div>
 @endsection

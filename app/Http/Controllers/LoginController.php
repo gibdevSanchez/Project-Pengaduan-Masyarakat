@@ -50,6 +50,10 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        if (auth('petugas')->check()) {
+            auth('petugas')->user()->updateQuietly(['last_seen_at' => null]);
+        }
+
         Auth::guard('petugas')->logout();
         Auth::guard('masyarakat')->logout();
         $request->session()->invalidate();

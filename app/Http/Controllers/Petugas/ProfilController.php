@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Petugas;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pengaduan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -12,7 +13,14 @@ class ProfilController extends Controller
     public function index()
     {
         $petugas = auth('petugas')->user();
-        return view('petugas.profil', compact('petugas'));
+
+        $stats = [
+            'total'   => Pengaduan::where('id_petugas', $petugas->id_petugas)->count(),
+            'selesai' => Pengaduan::where('id_petugas', $petugas->id_petugas)->where('status', 'selesai')->count(),
+            'ditolak' => Pengaduan::where('id_petugas', $petugas->id_petugas)->where('status', 'tidak_valid')->count(),
+        ];
+
+        return view('petugas.profil', compact('petugas', 'stats'));
     }
 
     public function update(Request $request)
