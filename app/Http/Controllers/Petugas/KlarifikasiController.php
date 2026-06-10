@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\Klarifikasi;
 use App\Models\Pengaduan;
+use App\Notifications\Masyarakat\NewKlarifikasiFromPetugas;
+use App\Notifications\Masyarakat\PengaduanStatusUpdated;
 use App\Services\ImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class KlarifikasiController extends Controller
 {
@@ -60,6 +63,14 @@ class KlarifikasiController extends Controller
 
         $klarifikasi = Klarifikasi::create($data);
 
+        if ($pengaduan->masyarakat) {
+            $pengaduan->masyarakat->notify(new NewKlarifikasiFromPetugas(
+                (int) $id,
+                Str::limit($pengaduan->isi_laporan, 50),
+                $petugas->nama_petugas,
+            ));
+        }
+
         return response()->json([
             'dari'       => 'petugas',
             'jenis'      => 'chat',
@@ -95,6 +106,11 @@ class KlarifikasiController extends Controller
         }
 
         $klarifikasi = Klarifikasi::create($data);
+
+        activity('pengaduan')
+            ->causedBy($petugas)
+            ->withProperties(['ip' => $request->ip(), 'id_pengaduan' => $id])
+            ->log("Tahapan update pengaduan #{$id} oleh {$petugas->nama_petugas}");
 
         return response()->json([
             'jenis'      => 'tahapan',
@@ -192,6 +208,19 @@ class KlarifikasiController extends Controller
             'status'     => 'selesai',
             'selesai_at' => now(),
         ]);
+
+        activity('pengaduan')
+            ->causedBy($petugas)
+            ->withProperties(['ip' => $request->ip(), 'id_pengaduan' => $id])
+            ->log("Pengaduan #{$id} diselesaikan oleh {$petugas->nama_petugas}");
+
+        if ($pengaduan->masyarakat) {
+            $pengaduan->masyarakat->notify(new PengaduanStatusUpdated(
+                (int) $id,
+                Str::limit($pengaduan->isi_laporan, 50),
+                'selesai',
+            ));
+        }
 
         return response()->json(['status' => 'selesai']);
     }

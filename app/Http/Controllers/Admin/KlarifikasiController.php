@@ -101,6 +101,11 @@ class KlarifikasiController extends Controller
 
         $klarifikasi = Klarifikasi::create($data);
 
+        activity('pengaduan')
+            ->causedBy($admin)
+            ->withProperties(['ip' => $request->ip(), 'id_pengaduan' => $id])
+            ->log("Respons anonim dikirim ke pengaduan #{$id} oleh admin {$admin->nama_petugas}");
+
         return response()->json([
             'dari'       => 'admin',
             'pesan'      => $klarifikasi->pesan,

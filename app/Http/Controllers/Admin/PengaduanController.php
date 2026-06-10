@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\Pengaduan;
 use App\Models\Petugas;
+use App\Notifications\Masyarakat\PengaduanStatusUpdated;
+use App\Notifications\Petugas\PengaduanAssigned;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PengaduanController extends Controller
 {
@@ -57,11 +60,28 @@ class PengaduanController extends Controller
             'status' => 'required|in:menunggu,proses,selesai,tidak_valid',
         ]);
 
-        $pengaduan = Pengaduan::withTrashed()->findOrFail($id);
+        $pengaduan  = Pengaduan::withTrashed()->findOrFail($id);
+        $oldStatus  = $pengaduan->status;
+        $newStatus  = $request->status;
+
         $pengaduan->update([
-            'status'     => $request->status,
-            'selesai_at' => $request->status === 'selesai' ? now() : $pengaduan->selesai_at,
+            'status'     => $newStatus,
+            'selesai_at' => $newStatus === 'selesai' ? now() : $pengaduan->selesai_at,
         ]);
+
+        $admin = auth('petugas')->user();
+        activity('pengaduan')
+            ->causedBy($admin)
+            ->withProperties(['ip' => $request->ip(), 'id_pengaduan' => $id, 'dari' => $oldStatus, 'ke' => $newStatus])
+            ->log("Status pengaduan #{$id} diubah: {$oldStatus} → {$newStatus} oleh {$admin->nama_petugas}");
+
+        if ($pengaduan->masyarakat) {
+            $pengaduan->masyarakat->notify(new PengaduanStatusUpdated(
+                (int) $id,
+                Str::limit($pengaduan->isi_laporan, 50),
+                $newStatus,
+            ));
+        }
 
         return back()->with('success', 'Status diperbarui.');
     }
@@ -69,20 +89,53 @@ class PengaduanController extends Controller
     public function assign(Request $request, string $id)
     {
         $request->validate(['id_petugas' => 'required|exists:petugas,id_petugas']);
-        Pengaduan::withTrashed()->findOrFail($id)->update(['id_petugas' => $request->id_petugas]);
+
+        $pengaduan = Pengaduan::withTrashed()->findOrFail($id);
+        $petugas   = Petugas::find($request->id_petugas);
+        $pengaduan->update(['id_petugas' => $request->id_petugas]);
+
+        $admin = auth('petugas')->user();
+        activity('pengaduan')
+            ->causedBy($admin)
+            ->withProperties(['ip' => $request->ip(), 'id_pengaduan' => $id, 'id_petugas' => $request->id_petugas])
+            ->log("Pengaduan #{$id} di-assign ke {$petugas?->nama_petugas} oleh {$admin->nama_petugas}");
+
+        if ($petugas) {
+            $petugas->notify(new PengaduanAssigned(
+                (int) $id,
+                Str::limit($pengaduan->isi_laporan, 50),
+                $pengaduan->kategori,
+            ));
+        }
 
         return back()->with('success', 'Pengaduan di-assign.');
     }
 
     public function destroy(string $id)
     {
-        Pengaduan::findOrFail($id)->delete();
+        $pengaduan = Pengaduan::findOrFail($id);
+        $admin     = auth('petugas')->user();
+
+        activity('pengaduan')
+            ->causedBy($admin)
+            ->withProperties(['ip' => request()->ip(), 'id_pengaduan' => $id])
+            ->log("Pengaduan #{$id} dihapus (soft) oleh {$admin->nama_petugas}");
+
+        $pengaduan->delete();
         return back()->with('success', 'Pengaduan dihapus (bisa dipulihkan).');
     }
 
     public function forceDestroy(string $id)
     {
-        Pengaduan::withTrashed()->findOrFail($id)->forceDelete();
+        $pengaduan = Pengaduan::withTrashed()->findOrFail($id);
+        $admin     = auth('petugas')->user();
+
+        activity('pengaduan')
+            ->causedBy($admin)
+            ->withProperties(['ip' => request()->ip(), 'id_pengaduan' => $id])
+            ->log("Pengaduan #{$id} dihapus permanen oleh {$admin->nama_petugas}");
+
+        $pengaduan->forceDelete();
         return back()->with('success', 'Pengaduan dihapus permanen.');
     }
 }

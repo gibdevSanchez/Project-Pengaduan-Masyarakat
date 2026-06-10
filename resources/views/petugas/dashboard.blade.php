@@ -166,6 +166,16 @@
                                     <span class="truncate max-w-[6rem]" x-text="c.lokasi"></span>
                                 </span>
                             </template>
+                            {{-- SLA chip (compact) --}}
+                            <template x-if="slaInfo(c)">
+                                <span class="inline-flex items-center gap-0.5 text-[0.625rem] font-semibold px-1.5 py-0.5 rounded-full"
+                                      :style="`background:${slaInfo(c).bg};color:${slaInfo(c).color}`">
+                                    <svg class="w-2.5 h-2.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <span x-text="slaInfo(c).label"></span>
+                                </span>
+                            </template>
                         </div>
 
                         <template x-if="!c.id_petugas">
@@ -224,26 +234,48 @@
             <div class="flex flex-col h-full overflow-hidden">
 
                 {{-- Zone 1: Sticky header --}}
-                <div class="flex items-center gap-3 px-5 py-4 border-b border-stone-200 bg-white shrink-0">
-                    <div :style="`width:2.5rem;height:2.5rem;border-radius:9999px;background-color:${avatarColor(selectedComplaint.nama)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;flex-shrink:0;`"
-                         x-text="selectedComplaint.initials"></div>
-                    <div class="flex-1 min-w-0">
-                        <p class="font-bold text-[0.9375rem] text-stone-900 truncate" x-text="selectedComplaint.nama"></p>
-                        <p class="font-light text-xs text-stone-500" x-text="selectedComplaint.tgl"></p>
+                <div class="px-5 py-4 border-b border-stone-200 bg-white shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div :style="`width:2.5rem;height:2.5rem;border-radius:9999px;background-color:${avatarColor(selectedComplaint.nama)};display:flex;align-items:center;justify-content:center;color:white;font-weight:700;flex-shrink:0;`"
+                             x-text="selectedComplaint.initials"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-bold text-[0.9375rem] text-stone-900 truncate" x-text="selectedComplaint.nama"></p>
+                            <p class="font-light text-xs text-stone-500" x-text="selectedComplaint.tgl"></p>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="text-[0.625rem] px-2 py-0.5 rounded-full font-medium"
+                                  :class="{
+                                    'bg-blue-100 text-blue-700': selectedComplaint.kategori === 'infrastruktur',
+                                    'bg-emerald-100 text-emerald-700': selectedComplaint.kategori === 'lingkungan',
+                                    'bg-red-100 text-red-700': selectedComplaint.kategori === 'keamanan',
+                                    'bg-purple-100 text-purple-700': selectedComplaint.kategori === 'sosial',
+                                    'bg-stone-100 text-stone-600': !selectedComplaint.kategori || selectedComplaint.kategori === 'lainnya',
+                                  }"
+                                  x-text="selectedComplaint.kategori ? selectedComplaint.kategori.charAt(0).toUpperCase() + selectedComplaint.kategori.slice(1) : ''">
+                            </span>
+                            <div x-html="statusBadgeHtml(selectedComplaint.status)"></div>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <span class="text-[0.625rem] px-2 py-0.5 rounded-full font-medium"
-                              :class="{
-                                'bg-blue-100 text-blue-700': selectedComplaint.kategori === 'infrastruktur',
-                                'bg-emerald-100 text-emerald-700': selectedComplaint.kategori === 'lingkungan',
-                                'bg-red-100 text-red-700': selectedComplaint.kategori === 'keamanan',
-                                'bg-purple-100 text-purple-700': selectedComplaint.kategori === 'sosial',
-                                'bg-stone-100 text-stone-600': !selectedComplaint.kategori || selectedComplaint.kategori === 'lainnya',
-                              }"
-                              x-text="selectedComplaint.kategori ? selectedComplaint.kategori.charAt(0).toUpperCase() + selectedComplaint.kategori.slice(1) : ''">
-                        </span>
-                        <div x-html="statusBadgeHtml(selectedComplaint.status)"></div>
-                    </div>
+
+                    {{-- SLA deadline bar --}}
+                    <template x-if="slaInfo(selectedComplaint)">
+                        <div class="mt-3 rounded-xl px-3 py-2.5 flex items-center gap-3"
+                             :style="`background:${slaInfo(selectedComplaint).bg}`">
+                            <svg class="w-4 h-4 shrink-0" :style="`color:${slaInfo(selectedComplaint).color}`" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-[0.6875rem] font-semibold" :style="`color:${slaInfo(selectedComplaint).color}`"
+                                   x-text="slaInfo(selectedComplaint).overdue ? 'SLA Terlewat' : 'Batas Waktu SLA'"></p>
+                                <p class="text-[0.75rem] font-bold" :style="`color:${slaInfo(selectedComplaint).color}`"
+                                   x-text="slaInfo(selectedComplaint).label"></p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[0.6875rem] font-light" :style="`color:${slaInfo(selectedComplaint).color};opacity:0.75`"
+                                   x-text="'SLA ' + selectedComplaint.sla_hours + 'j · sejak ' + selectedComplaint.tgl"></p>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 {{-- Zone 2: Scrollable body --}}
@@ -678,6 +710,7 @@ function petugasApp() {
         anonimResponsLoading: false,
         anonimPesan: '',
         anonimFoto: null,
+        slaTick: 0,
 
         async init() {
             this.$watch('selectedId', () => {
@@ -690,6 +723,7 @@ function petugasApp() {
                 this.anonimPesan = '';
                 this.anonimFoto = null;
             });
+            setInterval(() => { this.slaTick++; }, 60000);
             await this.loadComplaints();
         },
 
@@ -895,6 +929,37 @@ function petugasApp() {
         avatarColor(name) {
             const colors = ['#f97316','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899'];
             return colors[(name ?? 'A').charCodeAt(0) % colors.length];
+        },
+
+        slaInfo(c) {
+            void this.slaTick; // reactive ticker
+            if (!c || !c.sla_deadline || !c.created_at_iso) return null;
+            if (['selesai','tidak_valid'].includes(c.status)) return null;
+            const created  = new Date(c.created_at_iso);
+            const deadline = new Date(c.sla_deadline);
+            const now      = new Date();
+            const totalMs  = deadline - created;
+            const remainMs = deadline - now;
+            const pct      = totalMs > 0 ? remainMs / totalMs : 0;
+            const overdue  = remainMs < 0;
+            const abs      = Math.abs(remainMs);
+            const h        = Math.floor(abs / 3600000);
+            const m        = Math.floor((abs % 3600000) / 60000);
+            const time     = h > 0 ? `${h}j ${m}m` : `${m}m`;
+
+            let color, bg;
+            if (overdue || pct <= 0.1) {
+                color = '#991B1B'; bg = '#FEE2E2';
+            } else if (pct <= 0.5) {
+                color = '#92400E'; bg = '#FEF3C7';
+            } else {
+                color = '#065F46'; bg = '#ECFDF5';
+            }
+
+            return {
+                label:  overdue ? `Lewat ${time}` : `Sisa ${time}`,
+                color, bg, overdue,
+            };
         },
 
         statusColor(status) {

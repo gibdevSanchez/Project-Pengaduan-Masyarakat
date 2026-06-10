@@ -272,6 +272,66 @@
         </div>
     </div>
 
+    {{-- Notifikasi card --}}
+    <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-stone-100"
+         x-data="{
+             notifs: [], unreadCount: 0, loading: true,
+             async init() {
+                 const r = await fetch('{{ route('masyarakat.notifications') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                 const d = await r.json(); this.notifs = d.notifications; this.unreadCount = d.unread_count; this.loading = false;
+             },
+             async markRead(id) {
+                 const csrf = document.querySelector('meta[name=csrf-token]').content;
+                 await fetch('{{ route('masyarakat.notifications.read') }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ id }) });
+                 const n = this.notifs.find(n => n.id === id); if (n) n.read = true; this.unreadCount = Math.max(0, this.unreadCount - 1);
+             },
+             async markAllRead() {
+                 const csrf = document.querySelector('meta[name=csrf-token]').content;
+                 await fetch('{{ route('masyarakat.notifications.read') }}', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({}) });
+                 this.notifs.forEach(n => n.read = true); this.unreadCount = 0;
+             }
+         }">
+        <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center shrink-0 relative">
+                    <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span x-show="unreadCount > 0" x-text="unreadCount > 9 ? '9+' : unreadCount"
+                          class="absolute -top-1.5 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center"></span>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-stone-800">Notifikasi</p>
+                    <p class="text-[0.6875rem] font-light text-stone-400" x-text="unreadCount > 0 ? unreadCount + ' belum dibaca' : 'Semua sudah dibaca'"></p>
+                </div>
+            </div>
+            <button @click="markAllRead()" x-show="unreadCount > 0"
+                    class="text-xs text-orange-500 font-medium hover:text-orange-600 cursor-pointer border-0 bg-transparent">
+                Tandai semua
+            </button>
+        </div>
+
+        <div class="divide-y divide-stone-50">
+            <template x-if="loading">
+                <div class="py-6 text-center text-stone-400 text-xs">Memuat notifikasi...</div>
+            </template>
+            <template x-if="!loading && notifs.length === 0">
+                <div class="py-6 text-center text-stone-400 text-xs">Tidak ada notifikasi</div>
+            </template>
+            <template x-for="n in notifs" :key="n.id">
+                <a :href="n.url ?? '#'" @click="!n.read && markRead(n.id)"
+                   class="flex items-start gap-3 px-4 py-3 hover:bg-stone-50 no-underline transition-colors"
+                   :class="n.read ? 'opacity-55' : ''">
+                    <div class="w-2 h-2 rounded-full shrink-0 mt-1.5" :class="n.read ? 'bg-stone-200' : 'bg-orange-500'"></div>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-xs text-stone-800 leading-relaxed" x-text="n.message"></p>
+                        <p class="text-[10px] text-stone-400 mt-0.5" x-text="n.created_at"></p>
+                    </div>
+                </a>
+            </template>
+        </div>
+    </div>
+
     {{-- Logout — must be OUTSIDE the profile form (nested forms are invalid HTML) --}}
     <form method="POST" action="{{ route('logout') }}">
         @csrf

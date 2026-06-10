@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Masyarakat;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengaduan;
+use App\Models\Petugas;
+use App\Notifications\Admin\NewPengaduanSubmitted;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -49,6 +51,17 @@ class PengaduanController extends Controller
                 ]);
             }
         }
+
+        $user    = auth('masyarakat')->user();
+        $pelapor = $user ? $user->nama : 'Anonim';
+        Petugas::where('level', 'admin')->get()->each(
+            fn($admin) => $admin->notify(new NewPengaduanSubmitted(
+                $pengaduan->id_pengaduan,
+                Str::limit($pengaduan->isi_laporan, 50),
+                $pengaduan->kategori,
+                $pelapor,
+            ))
+        );
 
         return redirect()->route('masyarakat.pengaduan.success', $trackingCode);
     }

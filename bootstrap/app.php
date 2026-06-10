@@ -20,5 +20,20 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->report(function (\Throwable $e): void {
+            try {
+                activity('exception')
+                    ->withProperties([
+                        'ip'      => request()->ip(),
+                        'url'     => request()->fullUrl(),
+                        'class'   => class_basename($e),
+                        'file'    => str_replace(base_path(), '', $e->getFile()),
+                        'line'    => $e->getLine(),
+                        'message' => \Illuminate\Support\Str::limit($e->getMessage(), 200),
+                    ])
+                    ->log('[' . class_basename($e) . '] ' . \Illuminate\Support\Str::limit($e->getMessage(), 120));
+            } catch (\Throwable) {
+                // never let logging crash the app
+            }
+        });
     })->create();

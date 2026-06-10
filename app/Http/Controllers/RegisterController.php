@@ -21,11 +21,11 @@ class RegisterController extends Controller
     public function register(Request $request)
     {
         $request->validate([
-            'nik'                  => 'required|digits:16|unique:masyarakat,nik',
-            'nama'                 => 'required|string|max:35',
-            'username'             => 'required|string|max:25|unique:masyarakat,username',
-            'password'             => 'required|string|min:6|confirmed',
-            'telp'                 => 'required|string|max:13',
+            'nik'      => 'required|digits:16|unique:masyarakat,nik',
+            'nama'     => 'required|string|max:35',
+            'username' => 'required|string|max:25|unique:masyarakat,username',
+            'password' => 'required|string|min:6|confirmed',
+            'telp'     => 'required|string|max:13',
         ]);
 
         $masyarakat = Masyarakat::create([
@@ -38,6 +38,11 @@ class RegisterController extends Controller
 
         Auth::guard('masyarakat')->login($masyarakat);
         $request->session()->regenerate();
+
+        activity('auth')
+            ->causedBy($masyarakat)
+            ->withProperties(['ip' => $request->ip(), 'username' => $masyarakat->username])
+            ->log("Akun masyarakat baru terdaftar: {$masyarakat->nama} (@{$masyarakat->username})");
 
         return redirect('/masyarakat/dashboard');
     }

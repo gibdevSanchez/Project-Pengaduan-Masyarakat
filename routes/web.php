@@ -4,13 +4,17 @@ use App\Http\Controllers\Admin\BeritaController as AdminBerita;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\ExpiredDataController;
 use App\Http\Controllers\Admin\FeedbackController as AdminFeedback;
+use App\Http\Controllers\Admin\HealthController;
 use App\Http\Controllers\Admin\KlarifikasiController as AdminKlarifikasi;
+use App\Http\Controllers\Admin\LogController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotif;
 use App\Http\Controllers\Admin\PengaduanController as AdminPengaduan;
 use App\Http\Controllers\Admin\PetugasController as AdminPetugas;
 use App\Http\Controllers\Admin\UtilitasController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\Masyarakat\DashboardController as MasyarakatDashboard;
 use App\Http\Controllers\Masyarakat\FeedbackController as MasyarakatFeedback;
+use App\Http\Controllers\Masyarakat\NotificationController as MasyarakatNotif;
 use App\Http\Controllers\Masyarakat\PengaduanController as MasyarakatPengaduan;
 use App\Http\Controllers\Masyarakat\BeritaController;
 use App\Http\Controllers\Masyarakat\ProfilController;
@@ -18,6 +22,7 @@ use App\Http\Controllers\Petugas\BeritaController as PetugasBerita;
 use App\Http\Controllers\Petugas\DashboardController as PetugasDashboard;
 use App\Http\Controllers\Petugas\FeedbackController as PetugasFeedback;
 use App\Http\Controllers\Petugas\KlarifikasiController as PetugasKlarifikasi;
+use App\Http\Controllers\Petugas\NotificationController as PetugasNotif;
 use App\Http\Controllers\Petugas\PengaduanController as PetugasPengaduan;
 use App\Http\Controllers\Petugas\ProfilController as PetugasProfil;
 use App\Http\Controllers\Petugas\TanggapanController;
@@ -64,6 +69,12 @@ Route::prefix('admin')->middleware(['is.admin'])->group(function () {
 
     Route::get('/utilitas', [UtilitasController::class, 'index'])->name('admin.utilitas');
     Route::post('/utilitas', [UtilitasController::class, 'save'])->name('admin.utilitas.save');
+    Route::get('/utilitas/peta-data', [UtilitasController::class, 'petaData'])->name('admin.utilitas.peta-data');
+    Route::get('/utilitas/logs', [LogController::class, 'index'])->name('admin.utilitas.logs');
+    Route::get('/utilitas/health', [HealthController::class, 'index'])->name('admin.utilitas.health');
+
+    Route::get('/notifications', [AdminNotif::class, 'index'])->name('admin.notifications');
+    Route::post('/notifications/read', [AdminNotif::class, 'markRead'])->name('admin.notifications.read');
 
     Route::get('/berita', [AdminBerita::class, 'index'])->name('admin.berita.index');
     Route::get('/berita/create', [AdminBerita::class, 'create'])->name('admin.berita.create');
@@ -105,6 +116,9 @@ Route::prefix('petugas')->middleware(['is.petugas', 'update.last.seen'])->group(
     Route::get('/feedback', [PetugasFeedback::class, 'index'])->name('petugas.feedback.index');
     Route::patch('/feedback/{penugasan}/status', [PetugasFeedback::class, 'updateStatus'])->name('petugas.feedback.status');
     Route::patch('/feedback/{penugasan}/hide', [PetugasFeedback::class, 'hide'])->name('petugas.feedback.hide');
+
+    Route::get('/notifications', [PetugasNotif::class, 'index'])->name('petugas.notifications');
+    Route::post('/notifications/read', [PetugasNotif::class, 'markRead'])->name('petugas.notifications.read');
 });
 
 Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
@@ -120,4 +134,7 @@ Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
     Route::get('/pengaduan/{id}', [MasyarakatPengaduan::class, 'show'])->name('masyarakat.pengaduan.show');
     Route::post('/klarifikasi/{id}', [MasyarakatKlarifikasi::class, 'store'])->name('masyarakat.klarifikasi.store');
     Route::post('/feedback', [MasyarakatFeedback::class, 'store'])->name('masyarakat.feedback.store');
+
+    Route::get('/notifications', [MasyarakatNotif::class, 'index'])->name('masyarakat.notifications');
+    Route::post('/notifications/read', [MasyarakatNotif::class, 'markRead'])->name('masyarakat.notifications.read');
 });

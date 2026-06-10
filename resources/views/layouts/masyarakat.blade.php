@@ -97,5 +97,67 @@
 </div>
 
 @stack('scripts')
+
+{{-- Notification toast --}}
+<div x-data="notifToast()"
+     class="fixed top-3 left-1/2 -translate-x-1/2 z-[70] w-[calc(min(100vw,420px)-24px)] pointer-events-none">
+    <template x-for="t in toasts" :key="t.id">
+        <div class="mb-2 pointer-events-auto"
+             x-show="t.visible"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 -translate-y-3"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-3">
+            <a :href="t.url ?? '#'"
+               class="flex items-start gap-3 px-4 py-3 bg-white rounded-2xl shadow-lg border border-stone-200 no-underline">
+                <div class="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1.5"></div>
+                <p class="flex-1 text-xs text-stone-800 leading-relaxed" x-text="t.message"></p>
+                <button @click.prevent="dismiss(t.id)"
+                        class="shrink-0 w-4 h-4 flex items-center justify-center text-stone-400 hover:text-stone-600 cursor-pointer border-0 bg-transparent mt-0.5">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </a>
+        </div>
+    </template>
+</div>
+
+<script>
+function notifToast() {
+    return {
+        toasts: [],
+        lastUnread: null,
+        init() {
+            this.poll();
+            setInterval(() => this.poll(), 45000);
+        },
+        async poll() {
+            try {
+                const r = await fetch('{{ route('masyarakat.notifications') }}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const d = await r.json();
+                const current = d.unread_count;
+                if (this.lastUnread !== null && current > this.lastUnread && d.notifications.length) {
+                    const newest = d.notifications.find(n => !n.read);
+                    if (newest) this.show(newest);
+                }
+                this.lastUnread = current;
+            } catch {}
+        },
+        show(notif) {
+            const id = Date.now();
+            this.toasts.push({ id, message: notif.message, url: notif.url, visible: true });
+            setTimeout(() => this.dismiss(id), 5000);
+        },
+        dismiss(id) {
+            const t = this.toasts.find(t => t.id === id);
+            if (t) t.visible = false;
+            setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 300);
+        }
+    }
+}
+</script>
 </body>
 </html>

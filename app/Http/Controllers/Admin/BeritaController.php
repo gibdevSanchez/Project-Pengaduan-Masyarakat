@@ -66,7 +66,13 @@ class BeritaController extends Controller
             $data['foto'] = ImageService::compressAndStore($request->file('foto'), 'berita');
         }
 
-        Berita::create($data);
+        $berita = Berita::create($data);
+
+        $user = auth('petugas')->user();
+        activity('berita')
+            ->causedBy($user)
+            ->withProperties(['ip' => $request->ip(), 'id_berita' => $berita->id, 'judul' => $berita->judul, 'mode' => $mode])
+            ->log("Berita dibuat: \"{$berita->judul}\" oleh {$user->nama_petugas}");
 
         return redirect()->route('admin.berita.index')
             ->with('success', 'Berita berhasil dibuat.');
@@ -125,12 +131,24 @@ class BeritaController extends Controller
 
         $berita->update($data);
 
+        $user = auth('petugas')->user();
+        activity('berita')
+            ->causedBy($user)
+            ->withProperties(['ip' => $request->ip(), 'id_berita' => $berita->id, 'judul' => $berita->judul])
+            ->log("Berita diperbarui: \"{$berita->judul}\" oleh {$user->nama_petugas}");
+
         return redirect()->route('admin.berita.index')
             ->with('success', 'Berita berhasil diperbarui.');
     }
 
     public function destroy(Berita $berita)
     {
+        $user = auth('petugas')->user();
+        activity('berita')
+            ->causedBy($user)
+            ->withProperties(['ip' => request()->ip(), 'id_berita' => $berita->id, 'judul' => $berita->judul])
+            ->log("Berita dihapus: \"{$berita->judul}\" oleh {$user->nama_petugas}");
+
         if ($berita->foto) {
             Storage::disk('public')->delete($berita->foto);
         }

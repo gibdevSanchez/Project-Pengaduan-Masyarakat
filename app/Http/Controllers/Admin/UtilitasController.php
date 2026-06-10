@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
+use App\Models\Pengaduan;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UtilitasController extends Controller
@@ -39,11 +41,40 @@ class UtilitasController extends Controller
 
         AppSetting::set('closing_template', $request->closing_template);
 
+        $slaValues = [];
         foreach (['keamanan', 'infrastruktur', 'lingkungan', 'sosial', 'lainnya'] as $k) {
-            AppSetting::set("sla_{$k}", (string) $request->input("sla_{$k}"));
+            $slaValues[$k] = (string) $request->input("sla_{$k}");
+            AppSetting::set("sla_{$k}", $slaValues[$k]);
         }
+
+        $admin = auth('petugas')->user();
+        activity('sistem')
+            ->causedBy($admin)
+            ->withProperties([
+                'ip'  => $request->ip(),
+                'sla' => $slaValues,
+            ])
+            ->log("Pengaturan sistem diubah oleh {$admin->nama_petugas}: SLA & closing template diperbarui");
 
         return redirect()->route('admin.utilitas')
             ->with('success', 'Pengaturan berhasil disimpan.');
+    }
+
+    public function petaData(): JsonResponse
+    {
+        $points = Pengaduan::whereNotNull('lat')
+            ->whereNotNull('lng')
+            ->select('lat', 'lng', 'kategori', 'status', 'lokasi', 'created_at')
+            ->get()
+            ->map(fn($p) => [
+                'lat'      => (float) $p->lat,
+                'lng'      => (float) $p->lng,
+                'kategori' => $p->kategori,
+                'status'   => $p->status,
+                'lokasi'   => $p->lokasi,
+                'tgl'      => $p->created_at->format('d M Y'),
+            ]);
+
+        return response()->json($points);
     }
 }

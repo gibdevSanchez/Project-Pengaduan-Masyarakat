@@ -29,13 +29,19 @@ class PetugasController extends Controller
             'telp'         => 'required|string|max:13',
         ]);
 
-        Petugas::create([
+        $petugas = Petugas::create([
             'nama_petugas' => $request->nama_petugas,
             'username'     => $request->username,
             'password'     => Hash::make($request->password),
             'telp'         => $request->telp,
             'level'        => 'petugas',
         ]);
+
+        $admin = auth('petugas')->user();
+        activity('petugas')
+            ->causedBy($admin)
+            ->withProperties(['ip' => $request->ip(), 'id_petugas' => $petugas->id_petugas, 'username' => $petugas->username])
+            ->log("Petugas dibuat: {$petugas->nama_petugas} (@{$petugas->username}) oleh {$admin->nama_petugas}");
 
         return redirect()->route('admin.petugas.index')
             ->with('success', 'Akun petugas berhasil dibuat.');
@@ -64,11 +70,24 @@ class PetugasController extends Controller
             'telp'         => $request->telp,
         ];
 
+        $changedPassword = false;
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
+            $changedPassword   = true;
         }
 
         $petugas->update($data);
+
+        $admin = auth('petugas')->user();
+        activity('petugas')
+            ->causedBy($admin)
+            ->withProperties([
+                'ip'              => $request->ip(),
+                'id_petugas'      => $petugas->id_petugas,
+                'username'        => $petugas->username,
+                'password_changed'=> $changedPassword,
+            ])
+            ->log("Petugas diperbarui: {$petugas->nama_petugas} (@{$petugas->username}) oleh {$admin->nama_petugas}");
 
         return redirect()->route('admin.petugas.index')
             ->with('success', 'Data petugas berhasil diperbarui.');
@@ -77,6 +96,13 @@ class PetugasController extends Controller
     public function destroy($id)
     {
         $petugas = Petugas::where('id_petugas', $id)->where('level', 'petugas')->firstOrFail();
+
+        $admin = auth('petugas')->user();
+        activity('petugas')
+            ->causedBy($admin)
+            ->withProperties(['ip' => request()->ip(), 'id_petugas' => $petugas->id_petugas, 'username' => $petugas->username])
+            ->log("Petugas dihapus: {$petugas->nama_petugas} (@{$petugas->username}) oleh {$admin->nama_petugas}");
+
         $petugas->delete();
 
         return redirect()->route('admin.petugas.index')

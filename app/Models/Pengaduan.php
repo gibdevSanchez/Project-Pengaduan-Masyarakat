@@ -13,13 +13,16 @@ class Pengaduan extends Model
     protected $primaryKey = 'id_pengaduan';
 
     protected $casts = [
-        'selesai_at' => 'datetime',
+        'selesai_at'              => 'datetime',
+        'sla_notif_sent_at'       => 'datetime',
+        'sla_breach_notif_sent_at'=> 'datetime',
     ];
 
     protected $fillable = [
         'masyarakat_id', 'isi_laporan', 'status',
         'kategori', 'lokasi', 'lat', 'lng', 'tracking_code',
         'id_petugas', 'selesai_at', 'takedown_reason',
+        'sla_notif_sent_at', 'sla_breach_notif_sent_at',
         'created_at', 'updated_at',
     ];
 

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Feedback;
 use App\Models\FeedbackPenugasan;
 use App\Models\Petugas;
+use App\Notifications\Petugas\NewFeedbackAssigned;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class FeedbackController extends Controller
 {
@@ -50,6 +52,12 @@ class FeedbackController extends Controller
                 'tipe'        => 'individual',
                 'petugas_id'  => $validated['petugas_id'],
             ]);
+
+            $petugas = Petugas::find($validated['petugas_id']);
+            $petugas?->notify(new NewFeedbackAssigned(
+                $feedback->id,
+                Str::limit($feedback->isi, 50),
+            ));
         }
 
         return back()->with('success', 'Feedback berhasil ditugaskan.');

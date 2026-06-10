@@ -4,8 +4,11 @@ namespace App\Http\Controllers\Masyarakat;
 
 use App\Http\Controllers\Controller;
 use App\Models\Feedback;
+use App\Models\Petugas;
+use App\Notifications\Admin\NewFeedbackSubmitted;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class FeedbackController extends Controller
 {
@@ -25,7 +28,16 @@ class FeedbackController extends Controller
             $data['foto'] = ImageService::compressAndStore($request->file('foto'), 'feedback');
         }
 
-        Feedback::create($data);
+        $feedback = Feedback::create($data);
+
+        $pengirim = auth('masyarakat')->user()?->nama ?? 'Anonim';
+        Petugas::where('level', 'admin')->get()->each(
+            fn($admin) => $admin->notify(new NewFeedbackSubmitted(
+                $feedback->id,
+                Str::limit($feedback->isi, 50),
+                $pengirim,
+            ))
+        );
 
         return back()->with('success', 'Feedback berhasil dikirim. Terima kasih!');
     }

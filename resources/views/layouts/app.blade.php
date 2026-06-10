@@ -92,6 +92,43 @@
             @endforeach
         </nav>
 
+        {{-- Notification bell --}}
+        <div x-data="notifPetugas()" class="px-3 pb-1 shrink-0 relative">
+            <button @click="toggle()" class="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-stone-500 hover:bg-stone-100 hover:text-stone-800 transition-all duration-150 relative">
+                <svg class="w-[1.0625rem] h-[1.0625rem] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+                <span class="flex-1 text-left">Notifikasi</span>
+                <span x-show="unreadCount > 0" x-text="unreadCount > 9 ? '9+' : unreadCount"
+                      class="min-w-[20px] h-5 px-1 rounded-full bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center"></span>
+            </button>
+
+            <div x-show="open" @click.outside="open = false" x-transition:enter="transition ease-out duration-150"
+                 x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+                 x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0 scale-95"
+                 class="absolute bottom-full left-3 right-3 mb-1 bg-white rounded-xl shadow-xl border border-stone-200 overflow-hidden z-50">
+                <div class="flex items-center justify-between px-3 py-2.5 border-b border-stone-100">
+                    <span class="text-xs font-semibold text-stone-800">Notifikasi</span>
+                    <button @click="markAllRead()" x-show="unreadCount > 0" class="text-[10px] text-orange-500 font-medium hover:text-orange-600">Semua dibaca</button>
+                </div>
+                <div class="max-h-72 overflow-y-auto">
+                    <template x-if="loading"><div class="py-6 text-center text-stone-400 text-xs">Memuat...</div></template>
+                    <template x-if="!loading && notifs.length === 0"><div class="py-6 text-center text-stone-400 text-xs">Tidak ada notifikasi</div></template>
+                    <template x-for="n in notifs" :key="n.id">
+                        <a :href="n.url ?? '#'" @click="!n.read && markRead(n.id)"
+                           class="flex items-start gap-2.5 px-3 py-2.5 hover:bg-stone-50 border-b border-stone-50 no-underline transition-colors"
+                           :class="n.read ? 'opacity-60' : ''">
+                            <div class="w-1.5 h-1.5 rounded-full shrink-0 mt-1.5" :class="n.read ? 'bg-stone-300' : 'bg-orange-500'"></div>
+                            <div class="min-w-0">
+                                <p class="text-[0.6875rem] text-stone-800 leading-relaxed" x-text="n.message"></p>
+                                <p class="text-[10px] text-stone-400 mt-0.5" x-text="n.created_at"></p>
+                            </div>
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </div>
+
         {{-- User + logout --}}
         <div class="p-3 border-t border-stone-100 bg-stone-50/80 shrink-0">
             <div class="flex items-center gap-2.5 px-2 py-1.5 mb-2">
@@ -140,5 +177,40 @@
 </div>
 
 @stack('scripts')
+<script>
+function notifPetugas() {
+    @if($isAdmin)
+    const FETCH_URL = '{{ route('admin.notifications') }}';
+    const MARK_URL  = '{{ route('admin.notifications.read') }}';
+    @else
+    const FETCH_URL = '{{ route('petugas.notifications') }}';
+    const MARK_URL  = '{{ route('petugas.notifications.read') }}';
+    @endif
+    return {
+        open: false, notifs: [], unreadCount: 0, loading: false,
+        init() { this.fetchNotifs(); setInterval(() => this.fetchCount(), 45000); },
+        async fetchNotifs() {
+            this.loading = true;
+            const r = await fetch(FETCH_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const d = await r.json(); this.notifs = d.notifications; this.unreadCount = d.unread_count; this.loading = false;
+        },
+        async fetchCount() {
+            const r = await fetch(FETCH_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const d = await r.json(); this.unreadCount = d.unread_count; if (this.open) this.notifs = d.notifications;
+        },
+        async markRead(id) {
+            const csrf = document.querySelector('meta[name="csrf-token"]').content;
+            await fetch(MARK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({ id }) });
+            const n = this.notifs.find(n => n.id === id); if (n) n.read = true; this.unreadCount = Math.max(0, this.unreadCount - 1);
+        },
+        async markAllRead() {
+            const csrf = document.querySelector('meta[name="csrf-token"]').content;
+            await fetch(MARK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf, 'X-Requested-With': 'XMLHttpRequest' }, body: JSON.stringify({}) });
+            this.notifs.forEach(n => n.read = true); this.unreadCount = 0;
+        },
+        toggle() { this.open = !this.open; if (this.open) this.fetchNotifs(); }
+    }
+}
+</script>
 </body>
 </html>

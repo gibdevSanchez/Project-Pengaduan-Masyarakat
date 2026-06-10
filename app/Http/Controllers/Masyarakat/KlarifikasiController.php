@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Masyarakat;
 use App\Http\Controllers\Controller;
 use App\Models\Klarifikasi;
 use App\Models\Pengaduan;
+use App\Notifications\Petugas\NewKlarifikasiFromMasyarakat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class KlarifikasiController extends Controller
 {
@@ -39,6 +41,14 @@ class KlarifikasiController extends Controller
         }
 
         Klarifikasi::create($data);
+
+        if ($pengaduan->petugasAssigned) {
+            $pengaduan->petugasAssigned->notify(new NewKlarifikasiFromMasyarakat(
+                $pengaduan->id_pengaduan,
+                Str::limit($pengaduan->isi_laporan, 50),
+                $masyarakat->nama,
+            ));
+        }
 
         return redirect()->back()->with('success', 'Jawaban berhasil dikirim.');
     }
