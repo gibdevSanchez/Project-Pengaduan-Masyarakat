@@ -7,6 +7,7 @@
     <title>@yield('title', 'M-Lapor')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
+    @stack('head')
 </head>
 <body class="m-0 min-h-screen bg-stone-200">
 

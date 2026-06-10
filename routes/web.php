@@ -23,9 +23,12 @@ use App\Http\Controllers\Petugas\ProfilController as PetugasProfil;
 use App\Http\Controllers\Petugas\TanggapanController;
 use App\Http\Controllers\Masyarakat\KlarifikasiController as MasyarakatKlarifikasi;
 use App\Http\Controllers\RegisterController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn() => redirect('/login'));
+
+Route::get('/track', [TrackingController::class, 'show'])->name('track');
 
 Route::get('/login', [LoginController::class, 'showForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -56,6 +59,8 @@ Route::prefix('admin')->middleware(['is.admin'])->group(function () {
 
     Route::get('/klarifikasi/{id}', [AdminKlarifikasi::class, 'index'])->name('admin.klarifikasi.index');
     Route::post('/klarifikasi/{id}', [AdminKlarifikasi::class, 'store'])->name('admin.klarifikasi.store');
+    Route::get('/pengaduan/{id}/anonim-respons', [AdminKlarifikasi::class, 'indexAnonimRespons'])->name('admin.pengaduan.anonim-respons.index');
+    Route::post('/pengaduan/{id}/anonim-respons', [AdminKlarifikasi::class, 'storeAnonimRespons'])->name('admin.pengaduan.anonim-respons');
 
     Route::get('/utilitas', [UtilitasController::class, 'index'])->name('admin.utilitas');
     Route::post('/utilitas', [UtilitasController::class, 'save'])->name('admin.utilitas.save');
@@ -87,6 +92,8 @@ Route::prefix('petugas')->middleware(['is.petugas', 'update.last.seen'])->group(
     Route::post('/klarifikasi/{id}', [PetugasKlarifikasi::class, 'store'])->name('petugas.klarifikasi.store');
     Route::post('/pengaduan/{id}/tahapan', [PetugasKlarifikasi::class, 'storeTahapan'])->name('petugas.pengaduan.tahapan');
     Route::post('/pengaduan/{id}/selesai', [PetugasKlarifikasi::class, 'storeSelesai'])->name('petugas.pengaduan.selesai');
+    Route::get('/pengaduan/{id}/anonim-respons', [PetugasKlarifikasi::class, 'indexAnonimRespons'])->name('petugas.pengaduan.anonim-respons.index');
+    Route::post('/pengaduan/{id}/anonim-respons', [PetugasKlarifikasi::class, 'storeAnonimRespons'])->name('petugas.pengaduan.anonim-respons');
 
     Route::get('/berita', [PetugasBerita::class, 'index'])->name('petugas.berita.index');
     Route::get('/berita/create', [PetugasBerita::class, 'create'])->name('petugas.berita.create');
@@ -109,6 +116,7 @@ Route::prefix('masyarakat')->middleware(['is.masyarakat'])->group(function () {
     Route::put('/profil/password', [ProfilController::class, 'updatePassword'])->name('masyarakat.profil.password');
     Route::get('/pengaduan/create', [MasyarakatPengaduan::class, 'create'])->name('masyarakat.pengaduan.create');
     Route::post('/pengaduan', [MasyarakatPengaduan::class, 'store'])->name('masyarakat.pengaduan.store');
+    Route::get('/pengaduan/success/{code}', [MasyarakatPengaduan::class, 'success'])->name('masyarakat.pengaduan.success');
     Route::get('/pengaduan/{id}', [MasyarakatPengaduan::class, 'show'])->name('masyarakat.pengaduan.show');
     Route::post('/klarifikasi/{id}', [MasyarakatKlarifikasi::class, 'store'])->name('masyarakat.klarifikasi.store');
     Route::post('/feedback', [MasyarakatFeedback::class, 'store'])->name('masyarakat.feedback.store');

@@ -36,7 +36,12 @@ class UtilitasTest extends TestCase
     {
         $this->actingAs($this->admin, 'petugas')
             ->post(route('admin.utilitas.save'), [
-                'closing_template' => 'Terima kasih telah menggunakan M-Lapor. Salam hangat dari kami.',
+                'closing_template'  => 'Terima kasih telah menggunakan M-Lapor. Salam hangat dari kami.',
+                'sla_keamanan'      => 24,
+                'sla_infrastruktur' => 72,
+                'sla_lingkungan'    => 48,
+                'sla_sosial'        => 72,
+                'sla_lainnya'       => 72,
             ])
             ->assertRedirect(route('admin.utilitas'));
 
@@ -60,7 +65,12 @@ class UtilitasTest extends TestCase
     {
         $this->actingAs($this->admin, 'petugas')
             ->post(route('admin.utilitas.save'), [
-                'closing_template' => '',
+                'closing_template'  => '',
+                'sla_keamanan'      => 24,
+                'sla_infrastruktur' => 72,
+                'sla_lingkungan'    => 48,
+                'sla_sosial'        => 72,
+                'sla_lainnya'       => 72,
             ])
             ->assertSessionHasErrors('closing_template');
     }

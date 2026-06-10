@@ -18,7 +18,8 @@ class Pengaduan extends Model
 
     protected $fillable = [
         'masyarakat_id', 'isi_laporan', 'status',
-        'kategori', 'lokasi', 'id_petugas', 'selesai_at', 'takedown_reason',
+        'kategori', 'lokasi', 'lat', 'lng', 'tracking_code',
+        'id_petugas', 'selesai_at', 'takedown_reason',
         'created_at', 'updated_at',
     ];
 
@@ -46,5 +47,27 @@ class Pengaduan extends Model
     public function fotos()
     {
         return $this->hasMany(PengaduanFoto::class, 'id_pengaduan', 'id_pengaduan');
+    }
+
+    public function scopeOverdue($query, array $slaHours): void
+    {
+        $query->whereIn('status', ['menunggu', 'proses'])
+              ->where(function ($q) use ($slaHours) {
+                  foreach ($slaHours as $kategori => $hours) {
+                      $q->orWhere(fn($sub) =>
+                          $sub->where('kategori', $kategori)
+                              ->where('created_at', '<=', now()->subHours((int) $hours))
+                      );
+                  }
+              });
+    }
+
+    public function isOverdue(array $slaHours): bool
+    {
+        if (!in_array($this->status, ['menunggu', 'proses'])) {
+            return false;
+        }
+        $hours = $slaHours[$this->kategori] ?? $slaHours['lainnya'] ?? 72;
+        return $this->created_at->addHours((int) $hours)->isPast();
     }
 }

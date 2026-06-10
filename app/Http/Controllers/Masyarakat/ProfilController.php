@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Masyarakat;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengaduan;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -33,7 +34,7 @@ class ProfilController extends Controller
 
         $request->validate([
             'telp'          => ['required', 'string', 'max:13'],
-            'foto_profil'   => ['nullable', 'image', 'max:2048'],
+            'foto_profil'   => ['nullable', 'image', 'max:8192'],
             'password'      => ['nullable', 'string', 'min:6', 'confirmed'],
         ]);
 
@@ -43,7 +44,7 @@ class ProfilController extends Controller
             if ($user->foto_profil) {
                 Storage::disk('public')->delete($user->foto_profil);
             }
-            $data['foto_profil'] = $request->file('foto_profil')->store('profil', 'public');
+            $data['foto_profil'] = ImageService::compressAndStore($request->file('foto_profil'), 'profil');
         }
 
         if ($request->filled('password')) {

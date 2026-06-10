@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\Pengaduan;
 use App\Models\Petugas;
 use Illuminate\Http\Request;
@@ -28,10 +29,26 @@ class PengaduanController extends Controller
             $query->where('isi_laporan', 'like', "%{$request->search}%");
         }
 
+        if ($request->date_from) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->date_to) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
         $pengaduan   = $query->latest()->paginate(20)->withQueryString();
         $petugasList = Petugas::where('level', 'petugas')->get();
 
-        return view('admin.pengaduan.index', compact('pengaduan', 'petugasList', 'tab'));
+        $slaHours = [
+            'keamanan'      => (int) AppSetting::get('sla_keamanan', '24'),
+            'infrastruktur' => (int) AppSetting::get('sla_infrastruktur', '72'),
+            'lingkungan'    => (int) AppSetting::get('sla_lingkungan', '48'),
+            'sosial'        => (int) AppSetting::get('sla_sosial', '72'),
+            'lainnya'       => (int) AppSetting::get('sla_lainnya', '72'),
+        ];
+
+        return view('admin.pengaduan.index', compact('pengaduan', 'petugasList', 'tab', 'slaHours'));
     }
 
     public function updateStatus(Request $request, string $id)

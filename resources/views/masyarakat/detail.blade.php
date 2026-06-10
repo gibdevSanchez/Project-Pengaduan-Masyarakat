@@ -1,5 +1,10 @@
 @extends('layouts.masyarakat')
 
+@push('head')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endpush
+
 @section('title', 'Detail Pengaduan')
 
 @section('header')
@@ -70,6 +75,14 @@ $kategoriCfg = [
         </span>
         @endif
     </div>
+
+    {{-- Lokasi peta --}}
+    @if($pengaduan->lat && $pengaduan->lng)
+    <div>
+        <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">Lokasi di Peta</p>
+        <div id="detail-map" class="w-full h-44 rounded-xl overflow-hidden border border-stone-200 shadow-sm z-0"></div>
+    </div>
+    @endif
 
     {{-- Laporan --}}
     <div>
@@ -243,4 +256,19 @@ $kategoriCfg = [
     @endif
 
 </div>
+
+@if($pengaduan->lat && $pengaduan->lng)
+<script>
+(function () {
+    var lat = {{ (float) $pengaduan->lat }};
+    var lng = {{ (float) $pengaduan->lng }};
+    var map = L.map('detail-map', { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    L.marker([lat, lng]).addTo(map);
+})();
+</script>
+@endif
+
 @endsection

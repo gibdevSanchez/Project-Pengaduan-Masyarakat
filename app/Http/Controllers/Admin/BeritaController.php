@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Berita;
 use App\Models\Pengaduan;
+use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -28,7 +29,7 @@ class BeritaController extends Controller
         $validated = $request->validate([
             'judul'          => 'required|string|max:200',
             'isi'            => 'required|string|min:10',
-            'foto'           => 'nullable|image|max:3072',
+            'foto'           => 'nullable|image|max:8192',
             'kategori'       => 'required|in:infrastruktur,lingkungan,keamanan,sosial,lainnya',
             'format'         => 'required|in:biasa,besar',
             'id_pengaduan'   => 'nullable|exists:pengaduan,id_pengaduan',
@@ -62,7 +63,7 @@ class BeritaController extends Controller
         }
 
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('berita', 'public');
+            $data['foto'] = ImageService::compressAndStore($request->file('foto'), 'berita');
         }
 
         Berita::create($data);
@@ -83,7 +84,7 @@ class BeritaController extends Controller
         $validated = $request->validate([
             'judul'          => 'required|string|max:200',
             'isi'            => 'required|string|min:10',
-            'foto'           => 'nullable|image|max:3072',
+            'foto'           => 'nullable|image|max:8192',
             'kategori'       => 'required|in:infrastruktur,lingkungan,keamanan,sosial,lainnya',
             'format'         => 'required|in:biasa,besar',
             'id_pengaduan'   => 'nullable|exists:pengaduan,id_pengaduan',
@@ -119,7 +120,7 @@ class BeritaController extends Controller
             if ($berita->foto) {
                 Storage::disk('public')->delete($berita->foto);
             }
-            $data['foto'] = $request->file('foto')->store('berita', 'public');
+            $data['foto'] = ImageService::compressAndStore($request->file('foto'), 'berita');
         }
 
         $berita->update($data);

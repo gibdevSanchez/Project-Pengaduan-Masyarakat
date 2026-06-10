@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AppSetting;
 use App\Models\Pengaduan;
 use App\Models\Petugas;
 
@@ -28,6 +29,14 @@ class DashboardController extends Controller
             ->groupBy(fn($p) => $p->created_at->format('Y-W'))
             ->map->count();
 
+        $slaHours = [
+            'keamanan'      => (int) AppSetting::get('sla_keamanan', '24'),
+            'infrastruktur' => (int) AppSetting::get('sla_infrastruktur', '72'),
+            'lingkungan'    => (int) AppSetting::get('sla_lingkungan', '48'),
+            'sosial'        => (int) AppSetting::get('sla_sosial', '72'),
+            'lainnya'       => (int) AppSetting::get('sla_lainnya', '72'),
+        ];
+
         $stats = [
             'total'         => Pengaduan::count(),
             'menunggu'      => Pengaduan::where('status', 'menunggu')->count(),
@@ -39,6 +48,7 @@ class DashboardController extends Controller
                 ->distinct()->count('id_petugas'),
             'selesai'       => Pengaduan::where('status', 'selesai')->count(),
             'completionRate'=> $completionRate,
+            'overdue'       => Pengaduan::overdue($slaHours)->count(),
         ];
 
         $recentPengaduan = Pengaduan::with('masyarakat')->latest()->take(10)->get();

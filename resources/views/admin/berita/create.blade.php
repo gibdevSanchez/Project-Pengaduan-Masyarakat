@@ -16,7 +16,7 @@
     <form method="POST" action="{{ route('admin.berita.store') }}"
           class="space-y-5 rounded-xl bg-white p-6 border border-stone-200"
           enctype="multipart/form-data"
-          x-data="{ mode: '{{ old('publikasi_mode', 'draft') }}', fotoPreview: null }">
+          x-data="{ mode: '{{ old('publikasi_mode', 'draft') }}', fotoPreview: null, fotoError: '' }">
         @csrf
 
         <div>
@@ -34,7 +34,7 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-stone-700 mb-1">Foto <span class="text-stone-400 font-normal">(opsional, maks 3 MB)</span></label>
+            <label class="block text-sm font-medium text-stone-700 mb-1">Foto <span class="text-stone-400 font-normal">(opsional, maks 8 MB)</span></label>
             <div class="flex items-start gap-4">
                 <div x-show="fotoPreview" class="shrink-0">
                     <img :src="fotoPreview" class="w-24 h-24 rounded-lg object-cover border border-stone-200">
@@ -42,7 +42,8 @@
                 <div class="flex-1">
                     <input type="file" name="foto" accept="image/*"
                            class="w-full text-sm text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100 @error('foto') border border-red-400 rounded-lg p-1 @enderror"
-                           @change="const f=$event.target.files[0]; if(f){const r=new FileReader();r.onload=e=>fotoPreview=e.target.result;r.readAsDataURL(f)}else{fotoPreview=null}">
+                           @change="fotoError=''; const f=$event.target.files[0]; if(f){ if(f.size > 8*1024*1024){ fotoError='File terlalu besar. Maksimal ukuran 8 MB per foto.'; $event.target.value=''; fotoPreview=null; return; } const r=new FileReader();r.onload=e=>fotoPreview=e.target.result;r.readAsDataURL(f)}else{fotoPreview=null}">
+                    <p x-show="fotoError" x-text="fotoError" class="mt-1 text-xs text-red-600"></p>
                     @error('foto')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>

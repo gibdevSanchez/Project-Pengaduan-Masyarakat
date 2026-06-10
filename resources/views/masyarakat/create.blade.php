@@ -2,6 +2,11 @@
 
 @section('title', 'Buat Pengaduan')
 
+@push('head')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endpush
+
 @section('header')
 <div class="px-4 py-3.5 bg-white border-b border-stone-200 shrink-0 flex items-center gap-3">
     <a href="{{ route('masyarakat.dashboard') }}"
@@ -18,23 +23,120 @@
 @endsection
 
 @section('content')
+
+<script>
+// Leaflet instances live outside Alpine to avoid Proxy interference
+var _map = null, _marker = null;
+
+// Reverse geocode then update Alpine reactive data directly via the passed proxy
+async function _doGeocode(alpine, lat, lng) {
+    alpine.geocoding = true;
+    try {
+        var r = await fetch(
+            'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat +
+            '&lon=' + lng + '&accept-language=id'
+        );
+        var d = await r.json();
+        alpine.lokasi = d.display_name || (lat.toFixed(5) + ', ' + lng.toFixed(5));
+    } catch (e) {
+        alpine.lokasi = lat.toFixed(5) + ', ' + lng.toFixed(5);
+    } finally {
+        alpine.geocoding = false;
+    }
+}
+
+// Called from x-init with the Alpine $data proxy passed explicitly
+function _initMap(alpine) {
+    _map = L.map('map-create').setView([-6.2, 106.8], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(_map);
+
+    _map.on('click', async function (e) {
+        var lat = e.latlng.lat, lng = e.latlng.lng;
+        alpine.lat      = lat.toFixed(7);
+        alpine.lng      = lng.toFixed(7);
+        alpine.geoError = '';
+        if (_marker) {
+            _marker.setLatLng([lat, lng]);
+        } else {
+            _marker = L.marker([lat, lng]).addTo(_map);
+        }
+        await _doGeocode(alpine, lat, lng);
+    });
+
+    // Restore pin if validation failed and old values exist
+    if (alpine.lat && alpine.lng) {
+        var pos = [parseFloat(alpine.lat), parseFloat(alpine.lng)];
+        _marker = L.marker(pos).addTo(_map);
+        _map.setView(pos, 16);
+    }
+}
+</script>
+
 <div class="p-4"
      x-data="{
          charCount: 0,
          anonim: false,
          photoPreviews: [],
+         photoError: '',
+         lokasi: '{{ old('lokasi', '') }}',
+         lat: '{{ old('lat', '') }}',
+         lng: '{{ old('lng', '') }}',
+         geocoding: false,
+         geolocating: false,
+         geoError: '',
          removePhoto(idx) {
              this.photoPreviews.splice(idx, 1);
              if (this.photoPreviews.length === 0) document.getElementById('foto-input').value = '';
          },
          handleFiles(e) {
-             Array.from(e.target.files).forEach(file => {
-                 const reader = new FileReader();
-                 reader.onload = ev => this.photoPreviews.push(ev.target.result);
+             this.photoError = '';
+             var maxBytes = 8 * 1024 * 1024;
+             var tooBig = Array.from(e.target.files).find(function(f){ return f.size > maxBytes; });
+             if (tooBig) {
+                 this.photoError = 'File terlalu besar. Maksimal ukuran 8 MB per foto.';
+                 e.target.value = '';
+                 return;
+             }
+             var self = this;
+             Array.from(e.target.files).forEach(function(file) {
+                 var reader = new FileReader();
+                 reader.onload = function(ev) { self.photoPreviews.push(ev.target.result); };
                  reader.readAsDataURL(file);
              });
+         },
+         locateMe() {
+             if (!navigator.geolocation) {
+                 this.geoError = 'Browser tidak mendukung geolokasi.';
+                 return;
+             }
+             this.geolocating = true;
+             this.geoError = '';
+             var self = this;
+             navigator.geolocation.getCurrentPosition(
+                 async function(pos) {
+                     var lat = pos.coords.latitude, lng = pos.coords.longitude;
+                     self.lat = lat.toFixed(7);
+                     self.lng = lng.toFixed(7);
+                     if (_marker) {
+                         _marker.setLatLng([lat, lng]);
+                     } else {
+                         _marker = L.marker([lat, lng]).addTo(_map);
+                     }
+                     _map.setView([lat, lng], 16);
+                     self.geolocating = false;
+                     await _doGeocode(self, lat, lng);
+                 },
+                 function() {
+                     self.geoError = 'Akses lokasi ditolak. Ketuk peta secara manual.';
+                     self.geolocating = false;
+                 },
+                 { enableHighAccuracy: true, timeout: 10000 }
+             );
          }
-     }">
+     }"
+     x-init="$nextTick(() => _initMap($data))">
 
     @if($errors->any())
     <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
@@ -80,11 +182,40 @@
             @error('kategori')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         </div>
 
-        {{-- Lokasi --}}
+        {{-- Lokasi (Map Pin) --}}
         <div class="mb-4">
             <label class="block text-sm font-semibold text-stone-700 mb-1.5">
                 Lokasi <span class="text-xs font-normal text-stone-400">(opsional)</span>
             </label>
+
+            {{-- Map container with GPS button overlay --}}
+            <div class="relative mb-2">
+                <div id="map-create" class="w-full rounded-xl border border-stone-200" style="height:196px;"></div>
+
+                {{-- GPS button overlaid on map --}}
+                <button type="button" @click="locateMe()"
+                        :disabled="geolocating"
+                        class="absolute top-2 right-2 z-[1000] flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white border border-stone-200 shadow-md text-xs font-semibold text-stone-700 cursor-pointer hover:bg-stone-50 transition-colors disabled:opacity-60 disabled:cursor-wait">
+                    <svg x-show="!geolocating" class="w-3.5 h-3.5 text-orange-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3A8.994 8.994 0 0013 3.06V1h-2v2.06A8.994 8.994 0 003.06 11H1v2h2.06A8.994 8.994 0 0011 20.94V23h2v-2.06A8.994 8.994 0 0020.94 13H23v-2h-2.06z"/>
+                    </svg>
+                    <svg x-show="geolocating" x-cloak class="w-3.5 h-3.5 text-orange-500 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    <span x-text="geolocating ? 'Mencari...' : 'Lokasi Saya'"></span>
+                </button>
+            </div>
+
+            <p class="text-[0.6875rem] font-light text-stone-400 mb-2">
+                Ketuk peta untuk pin lokasi, atau gunakan tombol <strong>Lokasi Saya</strong> untuk mendeteksi otomatis.
+            </p>
+
+            {{-- GPS / geocode error --}}
+            <p class="text-[0.6875rem] font-light text-red-500 mb-2"
+               x-show="geoError" x-cloak x-text="geoError"></p>
+
+            {{-- Address input (auto-filled from Nominatim, manually editable) --}}
             <div class="relative">
                 <div class="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
                     <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,10 +223,19 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
                     </svg>
                 </div>
-                <input type="text" name="lokasi" value="{{ old('lokasi') }}"
-                       placeholder="Contoh: Jl. Sudirman No. 5, RT 03"
+                <input type="text" name="lokasi" x-model="lokasi"
+                       :placeholder="geocoding ? 'Mendapatkan alamat...' : 'Ketuk peta atau isi alamat manual...'"
                        class="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 bg-stone-50 text-stone-900 text-sm outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-400/20 font-sans">
             </div>
+            <input type="hidden" name="lat" x-model="lat">
+            <input type="hidden" name="lng" x-model="lng">
+
+            <p class="text-[0.6875rem] font-light text-emerald-600 mt-1 flex items-center gap-1" x-show="lat && lng" x-cloak>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Pin lokasi ditentukan.
+            </p>
         </div>
 
         {{-- Isi laporan --}}
@@ -131,7 +271,7 @@
                     </svg>
                 </div>
                 <p class="text-sm font-semibold text-stone-700 group-hover:text-stone-900 transition-colors">Ketuk untuk pilih foto</p>
-                <p class="text-xs font-light text-stone-400 mt-0.5">PNG, JPG hingga 2 MB · Maks. 5 foto</p>
+                <p class="text-xs font-light text-stone-400 mt-0.5">PNG, JPG · Maks. 5 foto · Maks. 8 MB per foto</p>
             </div>
 
             <div x-show="photoPreviews.length > 0" x-cloak class="flex flex-col gap-2">
@@ -152,6 +292,8 @@
                     + Tambah foto lagi
                 </button>
             </div>
+
+            <p class="text-xs text-red-500 mt-1" x-show="photoError" x-cloak x-text="photoError"></p>
 
             <input type="file" id="foto-input" name="foto[]" accept="image/*" multiple class="hidden" @change="handleFiles($event)">
             @error('foto')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror

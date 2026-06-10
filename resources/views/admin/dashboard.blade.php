@@ -17,10 +17,29 @@
         <p class="text-sm font-light text-stone-500 mt-0.5">Ringkasan data pengaduan masyarakat</p>
     </div>
 
+    {{-- SLA overdue alert --}}
+    @if($stats['overdue'] > 0)
+    <div class="mb-4 flex items-center gap-3 px-4 py-3.5 rounded-xl bg-red-50 border border-red-200">
+        <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div class="flex-1">
+            <p class="text-sm font-bold text-red-800">{{ $stats['overdue'] }} pengaduan melebihi batas waktu SLA</p>
+            <p class="text-xs text-red-500 font-light mt-0.5">Perlu tindak lanjut segera untuk menjaga kualitas layanan.</p>
+        </div>
+        <a href="{{ route('admin.pengaduan.index') }}"
+           class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors no-underline shrink-0">
+            Lihat
+        </a>
+    </div>
+    @endif
+
     {{-- Stat Cards --}}
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <div class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-100">
-            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total Pengaduan</p>
+            <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total</p>
             <p class="mt-1 text-3xl font-bold text-gray-900">{{ $stats['total'] }}</p>
         </div>
 
@@ -39,7 +58,13 @@
         <div class="rounded-xl bg-green-50 p-5 shadow-sm ring-1 ring-green-100">
             <p class="text-xs font-medium uppercase tracking-wide text-green-700">Selesai</p>
             <p class="mt-1 text-3xl font-bold text-green-900">{{ $stats['selesai'] }}</p>
-            <p class="mt-1 text-xs text-green-600">{{ $stats['completionRate'] }}% selesai (7 hari)</p>
+            <p class="mt-1 text-xs text-green-600">{{ $stats['completionRate'] }}% (7 hari)</p>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1 rounded-xl bg-red-50 p-5 shadow-sm ring-1 ring-red-100">
+            <p class="text-xs font-medium uppercase tracking-wide text-red-700">Lewat SLA</p>
+            <p class="mt-1 text-3xl font-bold text-red-900">{{ $stats['overdue'] }}</p>
+            <p class="mt-1 text-xs text-red-500">belum selesai tepat waktu</p>
         </div>
     </div>
 

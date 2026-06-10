@@ -32,7 +32,7 @@ class ComplaintCategoryLocationTest extends TestCase
             'lokasi'      => 'Jl. Merdeka No. 10',
         ]);
 
-        $response->assertRedirect(route('masyarakat.dashboard'));
+        $response->assertRedirectContains('/masyarakat/pengaduan/success/');
         $this->assertDatabaseHas('pengaduan', [
             'isi_laporan'   => 'Ada jalan berlubang di depan pasar',
             'kategori'      => 'infrastruktur',

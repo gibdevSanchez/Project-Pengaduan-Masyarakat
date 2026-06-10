@@ -17,9 +17,16 @@
          showPwModal: false,
          showFeedbackModal: false,
          feedbackPreview: null,
+         photoError: '',
+         feedbackError: '',
          handleFile(e) {
              const file = e.target.files[0];
              if (!file) return;
+             if (file.size > 8 * 1024 * 1024) {
+                 this.photoError = 'File terlalu besar. Maksimal ukuran 8 MB per foto.';
+                 e.target.value = ''; return;
+             }
+             this.photoError = '';
              const reader = new FileReader();
              reader.onload = ev => this.photoPreview = ev.target.result;
              reader.readAsDataURL(file);
@@ -27,6 +34,11 @@
          handleFeedbackFile(e) {
              const file = e.target.files[0];
              if (!file) return;
+             if (file.size > 8 * 1024 * 1024) {
+                 this.feedbackError = 'File terlalu besar. Maksimal ukuran 8 MB per foto.';
+                 e.target.value = ''; return;
+             }
+             this.feedbackError = '';
              const reader = new FileReader();
              reader.onload = ev => this.feedbackPreview = ev.target.result;
              reader.readAsDataURL(file);
@@ -97,6 +109,7 @@
 
         <input type="file" name="foto_profil" accept="image/*" class="hidden"
                x-ref="fotoInput" @change="handleFile($event)">
+        <p x-show="photoError" x-text="photoError" class="text-xs text-red-500 -mt-2 mb-1"></p>
         @error('foto_profil')<p class="text-xs text-red-500 -mt-2 mb-1">{{ $message }}</p>@enderror
 
         {{-- Statistics Section --}}
@@ -421,6 +434,7 @@
                             <input type="file" name="foto" accept="image/*" class="hidden"
                                    x-ref="feedbackFoto" @change="handleFeedbackFile($event)">
                         </label>
+                        <p x-show="feedbackError" x-text="feedbackError" class="mt-1 text-xs text-red-500"></p>
                     </div>
                 </div>
 

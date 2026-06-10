@@ -20,7 +20,7 @@
     <form method="POST" action="{{ route('petugas.berita.update', $berita->id) }}"
           class="space-y-5 rounded-xl bg-white p-6 border border-stone-200"
           enctype="multipart/form-data"
-          x-data="{ mode: '{{ old('publikasi_mode', $initMode) }}', fotoPreview: null }">
+          x-data="{ mode: '{{ old('publikasi_mode', $initMode) }}', fotoPreview: null, fotoError: '' }">
         @csrf @method('PUT')
 
         <div>
@@ -57,7 +57,8 @@
                 <div class="flex-1">
                     <input type="file" name="foto" accept="image/*"
                            class="w-full text-sm text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-orange-50 file:text-orange-600 hover:file:bg-orange-100"
-                           @change="const f=$event.target.files[0]; if(f){const r=new FileReader();r.onload=e=>fotoPreview=e.target.result;r.readAsDataURL(f)}else{fotoPreview=null}">
+                           @change="fotoError=''; const f=$event.target.files[0]; if(f){ if(f.size > 8*1024*1024){ fotoError='File terlalu besar. Maksimal ukuran 8 MB per foto.'; $event.target.value=''; fotoPreview=null; return; } const r=new FileReader();r.onload=e=>fotoPreview=e.target.result;r.readAsDataURL(f)}else{fotoPreview=null}">
+                    <p x-show="fotoError" x-text="fotoError" class="mt-1 text-xs text-red-600"></p>
                     @error('foto')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>

@@ -268,7 +268,7 @@
                     <template x-if="selectedComplaint.lokasi">
                         <div class="px-5 py-4 border-b border-stone-200">
                             <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-2">Lokasi</p>
-                            <div class="flex items-start gap-2.5">
+                            <div class="flex items-start gap-2.5 mb-3">
                                 <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center shrink-0 mt-0.5">
                                     <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
@@ -284,6 +284,9 @@
                                     </a>
                                 </div>
                             </div>
+                            <div id="petugas-detail-map"
+                                 x-show="selectedComplaint.lat && selectedComplaint.lng"
+                                 class="w-full h-44 rounded-xl overflow-hidden border border-stone-200"></div>
                         </div>
                     </template>
 
@@ -320,6 +323,83 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </template>
+
+                    {{-- Block C-Anon: Anonymous complaint identifier --}}
+                    <template x-if="selectedComplaint.isAnonim">
+                        <div class="px-5 py-4 border-b border-stone-200">
+                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-3">Pelapor</p>
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-[0.6875rem] font-light text-stone-400">Kode Lacak Anonim</p>
+                                    <p class="text-sm font-mono font-bold text-stone-800 tracking-wider mt-0.5" x-text="selectedComplaint.tracking_code"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    {{-- Block D-Anon: Anonymous response panel --}}
+                    <template x-if="selectedComplaint.isAnonim && selectedComplaint.id_petugas == {{ auth('petugas')->user()->id_petugas }}">
+                        <div class="px-5 py-4 border-b border-stone-200">
+                            <p class="text-[0.6875rem] font-semibold text-stone-400 uppercase tracking-wider mb-3">Respons untuk Pelapor</p>
+                            <p class="text-xs text-stone-400 font-light mb-3 flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 shrink-0 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                </svg>
+                                Respons ini akan terlihat di halaman lacak publik.
+                            </p>
+
+                            <template x-if="anonimResponsLoading">
+                                <p class="text-center text-xs text-stone-400 py-3">Memuat respons...</p>
+                            </template>
+
+                            <div class="flex flex-col gap-2 mb-4">
+                                <template x-for="(msg, i) in anonimResponsMessages" :key="i">
+                                    <div class="rounded-xl border border-stone-200 bg-stone-50 px-3 py-2.5">
+                                        <p class="text-[0.625rem] font-semibold uppercase tracking-wide text-stone-500 mb-1">Respons Petugas</p>
+                                        <p x-text="msg.pesan" class="text-sm text-stone-800 leading-relaxed"></p>
+                                        <img x-show="msg.foto_url" :src="msg.foto_url"
+                                             class="mt-2 w-full rounded-lg object-cover max-h-32 border border-stone-200 cursor-zoom-in"
+                                             @click="lightboxSrc = msg.foto_url">
+                                        <p x-text="msg.created_at" class="mt-1.5 text-[0.6875rem] text-stone-400 font-light"></p>
+                                    </div>
+                                </template>
+                                <template x-if="!anonimResponsLoading && anonimResponsMessages.length === 0">
+                                    <p class="text-center text-xs text-stone-400 italic py-2">Belum ada respons yang dikirim.</p>
+                                </template>
+                            </div>
+
+                            <template x-if="!['selesai','tidak_valid'].includes(selectedComplaint.status)">
+                                <div class="space-y-2">
+                                    <textarea x-model="anonimPesan" rows="2" minlength="3"
+                                              placeholder="Tulis respons untuk pelapor anonim..."
+                                              class="w-full rounded-xl border border-stone-200 px-3 py-2 text-sm font-sans text-stone-900 outline-none focus:border-stone-400 focus:ring-2 focus:ring-stone-400/20 resize-none"></textarea>
+                                    <div class="flex items-center gap-2">
+                                        <label class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 bg-white text-xs text-stone-500 cursor-pointer hover:border-stone-300 hover:text-stone-700 transition-colors">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                            <span x-text="anonimFoto ? anonimFoto.name.substring(0,15)+'…' : 'Lampir foto'"></span>
+                                            <input type="file" accept="image/*" class="hidden"
+                                                   @change="anonimFoto = $event.target.files[0] || null">
+                                        </label>
+                                        <button x-show="anonimFoto" @click="anonimFoto = null"
+                                                class="text-xs text-red-500 hover:text-red-700 bg-transparent border-0 cursor-pointer font-sans p-0">✕</button>
+                                    </div>
+                                    <button @click="submitAnonimRespons()"
+                                            :disabled="anonimPesan.trim().length < 3"
+                                            class="w-full rounded-xl bg-stone-700 hover:bg-stone-800 py-2 text-sm font-semibold text-white border-0 cursor-pointer font-sans disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                                        Kirim Respons Anonim
+                                    </button>
+                                </div>
+                            </template>
+                            <template x-if="['selesai','tidak_valid'].includes(selectedComplaint.status)">
+                                <p class="text-center text-xs text-stone-400 italic">Pengaduan sudah ditutup.</p>
+                            </template>
                         </div>
                     </template>
 
@@ -546,8 +626,27 @@
 </div>
 @endsection
 
+@push('head-scripts')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@endpush
+
 @push('scripts')
 <script>
+var _pmap = null;
+
+function initPmap(lat, lng) {
+    if (_pmap) { _pmap.remove(); _pmap = null; }
+    if (!lat || !lng) return;
+    var el = document.getElementById('petugas-detail-map');
+    if (!el) return;
+    _pmap = L.map(el, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(_pmap);
+    L.marker([lat, lng]).addTo(_pmap);
+}
+
 function petugasApp() {
     return {
         complaints: [],
@@ -575,6 +674,10 @@ function petugasApp() {
         tahapanFoto: null,
         selesaiOpen: false,
         selesaiPesan: '',
+        anonimResponsMessages: [],
+        anonimResponsLoading: false,
+        anonimPesan: '',
+        anonimFoto: null,
 
         async init() {
             this.$watch('selectedId', () => {
@@ -583,6 +686,9 @@ function petugasApp() {
                 this.klarifikasiInput = '';
                 this.takedownOpen = false;
                 this.takedownReason = '';
+                this.anonimResponsMessages = [];
+                this.anonimPesan = '';
+                this.anonimFoto = null;
             });
             await this.loadComplaints();
         },
@@ -620,6 +726,14 @@ function petugasApp() {
 
         selectComplaint(id) {
             this.selectedId = id;
+            var self = this;
+            this.$nextTick(function() {
+                var c = self.selectedComplaint;
+                initPmap(c && c.lat ? c.lat : null, c && c.lng ? c.lng : null);
+                if (c && c.isAnonim && c.id_petugas == {{ auth('petugas')->user()->id_petugas }}) {
+                    self.fetchAnonimRespons();
+                }
+            });
         },
 
         get selectedComplaint() {
@@ -745,6 +859,36 @@ function petugasApp() {
                 this.selesaiPesan = '';
                 this.selesaiOpen = false;
                 await this.fetchKlarifikasi();
+            }
+        },
+
+        async fetchAnonimRespons() {
+            this.anonimResponsLoading = true;
+            const res = await fetch(`/petugas/pengaduan/${this.selectedId}/anonim-respons`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            this.anonimResponsMessages = await res.json();
+            this.anonimResponsLoading = false;
+        },
+
+        async submitAnonimRespons() {
+            if (this.anonimPesan.trim().length < 3) return;
+            const fd = new FormData();
+            fd.append('pesan', this.anonimPesan);
+            if (this.anonimFoto) fd.append('foto', this.anonimFoto);
+            const res = await fetch(`/petugas/pengaduan/${this.selectedId}/anonim-respons`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: fd,
+            });
+            if (res.status === 201) {
+                const msg = await res.json();
+                this.anonimResponsMessages.push(msg);
+                this.anonimPesan = '';
+                this.anonimFoto = null;
             }
         },
 

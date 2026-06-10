@@ -46,7 +46,10 @@ class DashboardController extends Controller
                 'status'     => $p->status,
                 'kategori'   => $p->kategori,
                 'lokasi'     => $p->lokasi,
-                'id_petugas' => $p->id_petugas,
+                'lat'           => $p->lat ? (float) $p->lat : null,
+                'lng'           => $p->lng ? (float) $p->lng : null,
+                'id_petugas'    => $p->id_petugas,
+                'tracking_code' => $p->tracking_code,
             ];
         });
 
