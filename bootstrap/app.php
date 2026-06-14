@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'is.admin'        => \App\Http\Middleware\IsAdmin::class,
             'is.petugas'      => \App\Http\Middleware\IsPetugas::class,
